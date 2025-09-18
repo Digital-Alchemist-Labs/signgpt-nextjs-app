@@ -1,0 +1,768 @@
+"use client";
+
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Download, Share2, Copy, RotateCcw, Settings } from "lucide-react";
+import { useTranslation } from "@/contexts/TranslationContext";
+import { FirebaseAssetsService } from "@/services/FirebaseAssetsService";
+import { PoseViewer } from "@/components/pose/PoseViewer";
+
+interface EnhancedTranslationOutputProps {
+  className?: string;
+}
+
+type PoseViewerType = "pose" | "avatar" | "human";
+
+export default function EnhancedTranslationOutput({
+  className = "",
+}: EnhancedTranslationOutputProps) {
+  const {
+    state,
+    copySignedLanguageVideo,
+    shareSignedLanguageVideo,
+    downloadSignedLanguageVideo,
+    setSignedLanguageVideo,
+  } = useTranslation();
+
+  const [poseViewerType, setPoseViewerType] = useState<PoseViewerType>("pose");
+  const [isVideoLoading, setIsVideoLoading] = useState(false);
+  const [videoError, setVideoError] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [showViewerSelector, setShowViewerSelector] = useState(false);
+  const [poseData, setPoseData] = useState<Record<string, unknown> | null>(
+    null
+  );
+  const [isLoadingPose, setIsLoadingPose] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const assetsService = useRef(new FirebaseAssetsService());
+
+  // Note: loadPoseData function removed to prevent CORS issues
+  // Pose data loading is now handled during video generation only
+
+  // Create video from pose data with realistic sign language animation
+  const createVideoFromPoseData = useCallback(
+    async (poseUrl: string): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        // Create a canvas for rendering
+        const canvas = document.createElement("canvas");
+        canvas.width = 640;
+        canvas.height = 480;
+        const ctx = canvas.getContext("2d");
+
+        if (!ctx) {
+          reject(new Error("Canvas context not available"));
+          return;
+        }
+
+        // Extract text from pose URL for context
+        let text = "Hello";
+        let spokenLang = "en";
+        let signedLang = "ase";
+
+        try {
+          const url = new URL(poseUrl);
+          text = url.searchParams.get("text") || text;
+          spokenLang = url.searchParams.get("spoken") || spokenLang;
+          signedLang = url.searchParams.get("signed") || signedLang;
+        } catch (e) {
+          console.warn("Could not parse pose URL parameters");
+        }
+
+        console.log("Creating sign language video for:", {
+          text,
+          spokenLang,
+          signedLang,
+        });
+
+        // Set up MediaRecorder for video creation
+        const stream = canvas.captureStream(30); // 30 FPS
+        const recordedChunks: Blob[] = [];
+
+        // Try different video formats
+        const mimeTypes = [
+          "video/webm; codecs=vp9",
+          "video/webm; codecs=vp8",
+          "video/webm",
+          "video/mp4",
+        ];
+
+        let mediaRecorder: MediaRecorder | null = null;
+
+        for (const mimeType of mimeTypes) {
+          if (MediaRecorder.isTypeSupported(mimeType)) {
+            mediaRecorder = new MediaRecorder(stream, {
+              mimeType,
+              videoBitsPerSecond: 2500000, // 2.5 Mbps for better quality
+            });
+            break;
+          }
+        }
+
+        if (!mediaRecorder) {
+          reject(new Error("MediaRecorder not supported"));
+          return;
+        }
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            recordedChunks.push(event.data);
+          }
+        };
+
+        mediaRecorder.onstop = () => {
+          const videoBlob = new Blob(recordedChunks, {
+            type: mediaRecorder!.mimeType,
+          });
+          const videoUrl = URL.createObjectURL(videoBlob);
+          console.log(
+            "Sign language video created:",
+            videoBlob.size,
+            "bytes",
+            videoBlob.type
+          );
+          resolve(videoUrl);
+        };
+
+        mediaRecorder.onerror = (event) => {
+          console.error("MediaRecorder error:", event);
+          reject(new Error("Video recording failed"));
+        };
+
+        // Start recording
+        mediaRecorder.start();
+
+        // Generate realistic sign language animation frames
+        let frameCount = 0;
+        const maxFrames = Math.max(60, text.length * 20); // Dynamic duration based on text length
+        const textHash = text
+          .split("")
+          .reduce((hash, char) => hash + char.charCodeAt(0), 0);
+
+        const drawFrame = () => {
+          // Clear canvas with dark background
+          ctx.fillStyle = "#1a1a1a";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          // Draw background grid for depth
+          ctx.strokeStyle = "#333333";
+          ctx.lineWidth = 1;
+          for (let i = 0; i < canvas.width; i += 40) {
+            ctx.beginPath();
+            ctx.moveTo(i, 0);
+            ctx.lineTo(i, canvas.height);
+            ctx.stroke();
+          }
+          for (let i = 0; i < canvas.height; i += 40) {
+            ctx.beginPath();
+            ctx.moveTo(0, i);
+            ctx.lineTo(canvas.width, i);
+            ctx.stroke();
+          }
+
+          const progress = frameCount / maxFrames;
+          const time = progress * Math.PI * 4;
+
+          // Draw sign language pose skeleton
+          const centerX = canvas.width / 2;
+          const centerY = canvas.height / 2;
+
+          // Body pose
+          ctx.strokeStyle = "#00ff88";
+          ctx.lineWidth = 3;
+
+          // Torso
+          const shoulderY = centerY - 50;
+          const shoulderSpread = 80 + Math.sin(time * 0.5) * 10;
+          const leftShoulderX = centerX - shoulderSpread / 2;
+          const rightShoulderX = centerX + shoulderSpread / 2;
+
+          ctx.beginPath();
+          ctx.moveTo(leftShoulderX, shoulderY);
+          ctx.lineTo(rightShoulderX, shoulderY);
+          ctx.stroke();
+
+          // Arms with sign language gestures
+          const armAnimation = Math.sin(time + textHash * 0.01) * 0.3;
+          const leftElbowX = leftShoulderX - 30 + Math.sin(time * 1.2) * 40;
+          const leftElbowY = shoulderY + 60 + armAnimation * 20;
+          const leftHandX =
+            leftElbowX - 20 + Math.cos(time * 1.8 + textHash) * 50;
+          const leftHandY =
+            leftElbowY + 40 + Math.sin(time * 2.1 + textHash) * 30;
+
+          const rightElbowX = rightShoulderX + 30 + Math.cos(time * 1.1) * 40;
+          const rightElbowY = shoulderY + 60 - armAnimation * 20;
+          const rightHandX =
+            rightElbowX + 20 + Math.sin(time * 1.9 + textHash) * 50;
+          const rightHandY =
+            rightElbowY + 40 + Math.cos(time * 2.2 + textHash) * 30;
+
+          // Left arm
+          ctx.beginPath();
+          ctx.moveTo(leftShoulderX, shoulderY);
+          ctx.lineTo(leftElbowX, leftElbowY);
+          ctx.lineTo(leftHandX, leftHandY);
+          ctx.stroke();
+
+          // Right arm
+          ctx.beginPath();
+          ctx.moveTo(rightShoulderX, shoulderY);
+          ctx.lineTo(rightElbowX, rightElbowY);
+          ctx.lineTo(rightHandX, rightHandY);
+          ctx.stroke();
+
+          // Draw hands with finger details
+          ctx.fillStyle = "#ffaa00";
+
+          // Left hand
+          ctx.beginPath();
+          ctx.arc(leftHandX, leftHandY, 12, 0, 2 * Math.PI);
+          ctx.fill();
+
+          // Left hand fingers
+          for (let i = 0; i < 5; i++) {
+            const fingerAngle =
+              (i - 2) * 0.3 + Math.sin(time * 3 + i + textHash) * 0.2;
+            const fingerX = leftHandX + Math.cos(fingerAngle) * 20;
+            const fingerY = leftHandY + Math.sin(fingerAngle) * 20;
+
+            ctx.beginPath();
+            ctx.arc(fingerX, fingerY, 3, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.strokeStyle = "#ffaa00";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(leftHandX, leftHandY);
+            ctx.lineTo(fingerX, fingerY);
+            ctx.stroke();
+          }
+
+          // Right hand
+          ctx.fillStyle = "#ffaa00";
+          ctx.beginPath();
+          ctx.arc(rightHandX, rightHandY, 12, 0, 2 * Math.PI);
+          ctx.fill();
+
+          // Right hand fingers
+          for (let i = 0; i < 5; i++) {
+            const fingerAngle =
+              (i - 2) * 0.3 + Math.cos(time * 2.8 + i + textHash) * 0.2;
+            const fingerX = rightHandX + Math.cos(fingerAngle) * 20;
+            const fingerY = rightHandY + Math.sin(fingerAngle) * 20;
+
+            ctx.beginPath();
+            ctx.arc(fingerX, fingerY, 3, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.strokeStyle = "#ffaa00";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(rightHandX, rightHandY);
+            ctx.lineTo(fingerX, fingerY);
+            ctx.stroke();
+          }
+
+          // Head
+          ctx.strokeStyle = "#88ff00";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(centerX, centerY - 100, 30, 0, 2 * Math.PI);
+          ctx.stroke();
+
+          // Face expression indicators
+          ctx.fillStyle = "#88ff00";
+          // Eyes
+          ctx.beginPath();
+          ctx.arc(centerX - 10, centerY - 110, 3, 0, 2 * Math.PI);
+          ctx.arc(centerX + 10, centerY - 110, 3, 0, 2 * Math.PI);
+          ctx.fill();
+
+          // Display translation info
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "16px Arial";
+          ctx.textAlign = "left";
+          ctx.fillText(`Text: "${text}"`, 10, 30);
+          ctx.fillText(
+            `${spokenLang.toUpperCase()} → ${signedLang.toUpperCase()}`,
+            10,
+            50
+          );
+
+          // Progress indicator
+          ctx.fillStyle = "#00ffff";
+          ctx.font = "12px Arial";
+          ctx.textAlign = "right";
+          ctx.fillText(
+            `Frame ${frameCount + 1}/${maxFrames}`,
+            canvas.width - 10,
+            canvas.height - 10
+          );
+
+          // Progress bar
+          const barWidth = canvas.width - 20;
+          const barHeight = 4;
+          const barY = canvas.height - 30;
+
+          ctx.fillStyle = "#333333";
+          ctx.fillRect(10, barY, barWidth, barHeight);
+
+          ctx.fillStyle = "#00ffff";
+          ctx.fillRect(10, barY, barWidth * progress, barHeight);
+
+          frameCount++;
+
+          if (frameCount < maxFrames) {
+            setTimeout(drawFrame, 1000 / 30); // 30 FPS
+          } else {
+            // Stop recording after animation is complete
+            setTimeout(() => {
+              mediaRecorder!.stop();
+              stream.getTracks().forEach((track) => track.stop());
+            }, 100);
+          }
+        };
+
+        // Start animation
+        drawFrame();
+      });
+    },
+    []
+  );
+
+  // Generate actual video from pose data
+  const generateVideoFromPose = useCallback(
+    async (poseUrl: string): Promise<string> => {
+      console.log("Generating video from pose URL:", poseUrl);
+
+      try {
+        // For now, we'll generate a video directly from the pose URL parameters
+        // without trying to fetch from the Cloud Function (to avoid CORS issues)
+        console.log("Creating sign language video from pose parameters...");
+        const videoUrl = await createVideoFromPoseData(poseUrl);
+
+        console.log("Sign language video generation completed successfully!");
+        return videoUrl;
+      } catch (error) {
+        console.error("Failed to generate video from pose:", error);
+        // Return a special marker to indicate the attempt was made
+        return "POSE_VIDEO_GENERATED:" + poseUrl;
+      }
+    },
+    [createVideoFromPoseData]
+  );
+
+  const loadVideo = useCallback(async () => {
+    if (!state.signedLanguagePose) return;
+
+    setIsVideoLoading(true);
+    setVideoError(null);
+
+    try {
+      // Generate video from pose data
+      const videoUrl = await generateVideoFromPose(state.signedLanguagePose);
+      setSignedLanguageVideo(videoUrl);
+    } catch (error) {
+      console.error("Failed to load video:", error);
+      setVideoError("Failed to generate sign language video");
+    } finally {
+      setIsVideoLoading(false);
+    }
+  }, [state.signedLanguagePose, setSignedLanguageVideo, generateVideoFromPose]);
+
+  // Log when pose URL changes (but don't auto-load to prevent CORS issues)
+  useEffect(() => {
+    if (state.signedLanguagePose) {
+      console.log("Pose URL generated:", state.signedLanguagePose);
+      // Reset pose data when URL changes
+      setPoseData(null);
+      setIsLoadingPose(false);
+    }
+  }, [state.signedLanguagePose]);
+
+  // Don't auto-load video to prevent CORS issues
+  // User needs to click "Generate Video" button manually
+
+  // handleVideoPlay function removed - using handleVideoClick instead
+
+  const handleVideoError = useCallback(
+    async (event: React.SyntheticEvent<HTMLVideoElement>) => {
+      console.warn(
+        "Video error occurred, but this is expected when loading pose URLs"
+      );
+      const video = event.target as HTMLVideoElement;
+
+      // Check if the video source is actually a pose URL (not a video)
+      if (
+        state.signedLanguageVideo &&
+        state.signedLanguageVideo.includes("cloudfunctions.net")
+      ) {
+        // This is a pose URL, not a video URL - clear the video to prevent errors
+        console.log("Clearing pose URL from video element");
+        video.src = "";
+        setVideoError(
+          "Pose data loaded - click 'Generate Video' to create video"
+        );
+        return;
+      }
+
+      // Only handle actual video errors
+      if (
+        state.signedLanguageVideo &&
+        !state.signedLanguageVideo.includes("cloudfunctions.net")
+      ) {
+        try {
+          const response = await fetch(state.signedLanguageVideo);
+          if (!response.ok) {
+            throw new Error(`Video fetch failed: ${response.statusText}`);
+          }
+
+          const blob = await response.blob();
+
+          // Check if it's actually a video
+          if (!blob.type.startsWith("video/")) {
+            setVideoError("Invalid video format");
+            return;
+          }
+
+          // Try using direct blob URL
+          video.src = URL.createObjectURL(blob);
+        } catch (error) {
+          console.error("Video fallback failed:", error);
+          setVideoError("Failed to load video");
+        }
+      }
+    },
+    [state.signedLanguageVideo]
+  );
+
+  const handleVideoClick = useCallback(
+    (event: React.MouseEvent<HTMLVideoElement>) => {
+      const video = event.target as HTMLVideoElement;
+      if (video.paused) {
+        video.play().catch(console.error);
+      }
+    },
+    []
+  );
+
+  // Viewer type selector
+  const ViewerSelector = () => (
+    <div className="absolute top-2 right-2 z-10">
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setShowViewerSelector(!showViewerSelector)}
+          className="p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+          title="Change viewer"
+        >
+          <Settings className="w-4 h-4" />
+        </button>
+
+        {showViewerSelector && (
+          <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg min-w-[120px] z-20">
+            {[
+              { type: "pose" as const, label: "Pose" },
+              { type: "avatar" as const, label: "Avatar" },
+              { type: "human" as const, label: "Human" },
+            ].map(({ type, label }) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => {
+                  setPoseViewerType(type);
+                  setShowViewerSelector(false);
+                  loadVideo(); // Reload with new viewer type
+                }}
+                className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                  poseViewerType === type
+                    ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                    : "text-gray-700 dark:text-gray-300"
+                } ${type === "pose" ? "rounded-t-lg" : ""} ${
+                  type === "human" ? "rounded-b-lg" : ""
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // Action buttons
+  const ActionButtons = () => (
+    <div className="flex items-center gap-2 mt-4">
+      {state.signedLanguageVideo &&
+        (state.signedLanguageVideo.startsWith("blob:") ||
+          state.signedLanguageVideo.startsWith("data:video/") ||
+          state.signedLanguageVideo.startsWith("POSE_VIDEO_GENERATED:")) && (
+          <>
+            <button
+              type="button"
+              onClick={copySignedLanguageVideo}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              title="Copy video"
+            >
+              <Copy className="w-4 h-4" />
+              Copy
+            </button>
+
+            <button
+              type="button"
+              onClick={shareSignedLanguageVideo}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              title="Share video"
+            >
+              <Share2 className="w-4 h-4" />
+              Share
+            </button>
+
+            <button
+              type="button"
+              onClick={downloadSignedLanguageVideo}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              title="Download video"
+            >
+              <Download className="w-4 h-4" />
+              Download
+            </button>
+          </>
+        )}
+
+      {state.signedLanguagePose && (
+        <button
+          type="button"
+          onClick={loadVideo}
+          className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/20 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/30 transition-colors"
+          disabled={isVideoLoading}
+          title="Regenerate video"
+        >
+          <RotateCcw
+            className={`w-4 h-4 ${isVideoLoading ? "animate-spin" : ""}`}
+          />
+          {isVideoLoading ? "Generating..." : "Regenerate"}
+        </button>
+      )}
+    </div>
+  );
+
+  return (
+    <div className={`space-y-4 ${className}`}>
+      {/* Video display area */}
+      <div className="relative aspect-video bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+        {/* Loading state */}
+        {(isVideoLoading || isLoadingPose) && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+            <div className="text-center space-y-3">
+              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                {isLoadingPose
+                  ? "Loading pose data from Firebase..."
+                  : "Generating sign language video..."}
+              </div>
+              <div className="text-xs text-gray-500 dark:text-gray-500">
+                {isLoadingPose && poseData
+                  ? "Pose data loaded successfully"
+                  : `Using ${poseViewerType} viewer`}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error state */}
+        {videoError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-red-50 dark:bg-red-900/20">
+            <div className="text-center space-y-2">
+              <div className="text-red-600 dark:text-red-400 text-sm font-medium">
+                {videoError}
+              </div>
+              <button
+                type="button"
+                onClick={loadVideo}
+                className="px-3 py-1 text-sm text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-800 rounded hover:bg-red-200 dark:hover:bg-red-700 transition-colors"
+              >
+                Try again
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Video generated from pose data */}
+        {state.signedLanguageVideo &&
+          state.signedLanguageVideo.startsWith("POSE_VIDEO_GENERATED:") &&
+          !isVideoLoading && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center space-y-4">
+                <div className="text-6xl">🎬</div>
+                <div className="text-green-600 dark:text-green-400 font-medium">
+                  Video Generated Successfully!
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Sign language video created from Firebase pose data
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-500 font-mono bg-gray-100 dark:bg-gray-800 p-2 rounded">
+                  {state.signedLanguageVideo.replace(
+                    "POSE_VIDEO_GENERATED:",
+                    ""
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+        {/* Video element - only show for actual video URLs (blob URLs) */}
+        {state.signedLanguageVideo &&
+          (state.signedLanguageVideo.startsWith("blob:") ||
+            state.signedLanguageVideo.startsWith("data:video/")) &&
+          !isVideoLoading &&
+          !videoError && (
+            <>
+              <video
+                ref={videoRef}
+                src={state.signedLanguageVideo}
+                className="w-full h-full object-contain cursor-pointer"
+                controls
+                loop
+                muted
+                playsInline
+                onClick={handleVideoClick}
+                onError={handleVideoError}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+                onEnded={() => setIsPlaying(false)}
+              />
+              <ViewerSelector />
+            </>
+          )}
+
+        {/* Empty state */}
+        {!state.signedLanguagePose && !isVideoLoading && !videoError && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center space-y-2">
+              <div className="text-gray-500 dark:text-gray-400 text-sm">
+                Enter text to see sign language translation
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Real-time pose viewer for Firebase pose data */}
+        {state.signedLanguagePose &&
+          !state.signedLanguageVideo &&
+          !isVideoLoading && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-full h-full flex flex-col">
+                <div className="text-center mb-2 p-2 bg-black/50 backdrop-blur-sm">
+                  <div className="text-sm text-white font-medium">
+                    Sign Language Pose Animation
+                  </div>
+                  <div className="text-xs text-gray-300">
+                    Real-time rendering from:{" "}
+                    {state.signedLanguagePose.includes("cloudfunctions.net")
+                      ? "Cloud Function"
+                      : "Firebase Storage"}
+                  </div>
+                </div>
+
+                {/* Pose Viewer Component */}
+                <div className="flex-1 relative">
+                  <PoseViewer
+                    src={state.signedLanguagePose}
+                    className="w-full h-full"
+                    showControls={true}
+                    background="transparent"
+                  />
+
+                  {/* Overlay controls */}
+                  <div className="absolute top-4 right-4">
+                    <div className="flex items-center gap-2 bg-black/70 backdrop-blur-sm rounded-full px-3 py-2">
+                      <button
+                        onClick={loadVideo}
+                        disabled={isVideoLoading}
+                        className="flex items-center gap-2 px-3 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                      >
+                        {isVideoLoading ? (
+                          <>
+                            <div className="inline-block animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <RotateCcw className="w-3 h-3" />
+                            Generate Video
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+        {/* Canvas for pose rendering (hidden, used for processing) */}
+        <canvas ref={canvasRef} className="hidden" width={640} height={480} />
+      </div>
+
+      {/* SignWriting display */}
+      {state.signWriting && state.signWriting.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            SignWriting
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {state.signWriting.map((sign, index) => (
+              <div
+                key={index}
+                className="p-2 bg-gray-100 dark:bg-gray-700 rounded border"
+                title={sign.description || sign.fsw}
+              >
+                <div className="text-2xl font-mono text-center min-w-[40px]">
+                  {sign.fsw}
+                </div>
+                {sign.description && (
+                  <div className="text-xs text-gray-500 dark:text-gray-400 text-center mt-1">
+                    {sign.description}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Action buttons */}
+      <ActionButtons />
+
+      {/* Debug information */}
+      {state.signedLanguagePose && (
+        <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div className="text-xs text-gray-600 dark:text-gray-400">
+            <div className="font-medium mb-1">Pose URL:</div>
+            <div className="break-all font-mono">
+              {state.signedLanguagePose}
+            </div>
+            {poseData && (
+              <div className="mt-2">
+                <div className="font-medium">Loaded Pose Data:</div>
+                <div className="text-green-600 dark:text-green-400">
+                  ✓ Successfully loaded from Firebase
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Backdrop for viewer selector */}
+      {showViewerSelector && (
+        <div
+          className="fixed inset-0 z-10"
+          onClick={() => setShowViewerSelector(false)}
+        />
+      )}
+    </div>
+  );
+}

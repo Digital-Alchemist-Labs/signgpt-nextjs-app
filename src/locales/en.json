@@ -20,7 +20,8 @@
     "save": "Save",
     "delete": "Delete",
     "edit": "Edit",
-    "close": "Close"
+    "close": "Close",
+    "home": "Home",
+    "settings": "Settings"
   }
 }
-

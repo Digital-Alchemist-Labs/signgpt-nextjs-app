@@ -6,20 +6,22 @@ import i18n from "@/lib/i18n";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { TranslationProvider } from "@/contexts/TranslationContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
+import { PoseProvider } from "@/contexts/PoseContext";
 
 interface ProvidersProps {
-	children: ReactNode;
+  children: ReactNode;
 }
 
 export function Providers({ children }: ProvidersProps) {
-	return (
-		<I18nextProvider i18n={i18n}>
-			<ThemeProvider>
-				<SettingsProvider>
-					<TranslationProvider>{children}</TranslationProvider>
-				</SettingsProvider>
-			</ThemeProvider>
-		</I18nextProvider>
-	);
+  return (
+    <I18nextProvider i18n={i18n}>
+      <ThemeProvider>
+        <SettingsProvider>
+          <PoseProvider>
+            <TranslationProvider>{children}</TranslationProvider>
+          </PoseProvider>
+        </SettingsProvider>
+      </ThemeProvider>
+    </I18nextProvider>
+  );
 }
-

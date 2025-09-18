@@ -2,6 +2,18 @@
   "name": "translate-nextjs",
   "version": "0.1.0",
   "private": true,
+  "description": "SignGPT APP",
+  "homepage": "https://github.com/Digital-Alchemist-Labs/signgpt-nextjs-app#readme",
+  "bugs": {
+    "url": "https://github.com/Digital-Alchemist-Labs/signgpt-nextjs-app/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Digital-Alchemist-Labs/signgpt-nextjs-app.git"
+  },
+  "license": "ISC",
+  "author": "D-ALabs",
+  "main": "next.config.js",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
