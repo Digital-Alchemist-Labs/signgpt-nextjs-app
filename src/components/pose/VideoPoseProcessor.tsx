@@ -186,12 +186,7 @@ export const VideoPoseProcessor: React.FC<VideoPoseProcessorProps> = ({
       {showPoseViewer && (
         <div className="pose-viewer-container">
           <h3 className="text-lg font-semibold mb-2">Pose Estimation</h3>
-          <PoseViewer
-            width={640}
-            height={480}
-            showControls={true}
-            autoResize={true}
-          />
+          <PoseViewer className="w-full h-96" showControls={true} loop={true} />
         </div>
       )}
 

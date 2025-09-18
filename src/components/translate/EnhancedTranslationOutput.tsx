@@ -43,10 +43,10 @@ export default function EnhancedTranslationOutput({
   const createVideoFromPoseData = useCallback(
     async (poseUrl: string): Promise<string> => {
       return new Promise((resolve, reject) => {
-        // Create a canvas for rendering
+        // Create a canvas for rendering - larger size for better quality
         const canvas = document.createElement("canvas");
-        canvas.width = 640;
-        canvas.height = 480;
+        canvas.width = 960;
+        canvas.height = 720;
         const ctx = canvas.getContext("2d");
 
         if (!ctx) {
@@ -92,7 +92,7 @@ export default function EnhancedTranslationOutput({
           if (MediaRecorder.isTypeSupported(mimeType)) {
             mediaRecorder = new MediaRecorder(stream, {
               mimeType,
-              videoBitsPerSecond: 2500000, // 2.5 Mbps for better quality
+              videoBitsPerSecond: 4000000, // 4 Mbps for higher quality at larger size
             });
             break;
           }
@@ -133,7 +133,23 @@ export default function EnhancedTranslationOutput({
 
         // Generate realistic sign language animation frames
         let frameCount = 0;
-        const maxFrames = Math.max(60, text.length * 20); // Dynamic duration based on text length
+        // Special handling for extremely short text (single letters/words)
+        const isVeryShortText = text.length <= 1; // Single character
+        const isShortText = text.length <= 3;
+
+        let minFrames, textBasedFrames;
+        if (isVeryShortText) {
+          minFrames = 150; // 5 seconds for single characters
+          textBasedFrames = 150; // Fixed duration for consistency
+        } else if (isShortText) {
+          minFrames = 180; // 6 seconds for short text
+          textBasedFrames = text.length * 40;
+        } else {
+          minFrames = 240; // 8 seconds for longer text
+          textBasedFrames = text.length * 25;
+        }
+
+        const maxFrames = Math.max(minFrames, textBasedFrames);
         const textHash = text
           .split("")
           .reduce((hash, char) => hash + char.charCodeAt(0), 0);
@@ -160,7 +176,31 @@ export default function EnhancedTranslationOutput({
           }
 
           const progress = frameCount / maxFrames;
-          const time = progress * Math.PI * 4;
+          const time = progress * Math.PI * 2; // Full cycle for seamless looping
+
+          // Special variation patterns for different text lengths
+          let textVariation = 0;
+          if (isVeryShortText) {
+            // Single character: simple, clear gesture with distinct phases
+            const gesturePhase = progress * 3; // 3 distinct phases
+            if (gesturePhase < 1) {
+              // Phase 1: Move to position (smooth entry)
+              textVariation = Math.sin(gesturePhase * Math.PI) * 0.5;
+            } else if (gesturePhase < 2) {
+              // Phase 2: Hold position (clear display)
+              textVariation = 0.8;
+            } else {
+              // Phase 3: Return to start (smooth exit)
+              textVariation =
+                Math.sin((gesturePhase - 2) * Math.PI) * 0.5 + 0.3;
+            }
+          } else if (isShortText) {
+            // Short text: more variation
+            textVariation = Math.sin(progress * Math.PI * 4) * 0.2;
+          }
+
+          // Legacy support
+          const shortTextVariation = textVariation;
 
           // Draw sign language pose skeleton
           const centerX = canvas.width / 2;
@@ -181,21 +221,45 @@ export default function EnhancedTranslationOutput({
           ctx.lineTo(rightShoulderX, shoulderY);
           ctx.stroke();
 
-          // Arms with sign language gestures
-          const armAnimation = Math.sin(time + textHash * 0.01) * 0.3;
-          const leftElbowX = leftShoulderX - 30 + Math.sin(time * 1.2) * 40;
-          const leftElbowY = shoulderY + 60 + armAnimation * 20;
-          const leftHandX =
-            leftElbowX - 20 + Math.cos(time * 1.8 + textHash) * 50;
-          const leftHandY =
-            leftElbowY + 40 + Math.sin(time * 2.1 + textHash) * 30;
+          // Arms with sign language gestures - adaptive based on text length
+          let leftElbowX, leftElbowY, leftHandX, leftHandY;
+          let rightElbowX, rightElbowY, rightHandX, rightHandY;
 
-          const rightElbowX = rightShoulderX + 30 + Math.cos(time * 1.1) * 40;
-          const rightElbowY = shoulderY + 60 - armAnimation * 20;
-          const rightHandX =
-            rightElbowX + 20 + Math.sin(time * 1.9 + textHash) * 50;
-          const rightHandY =
-            rightElbowY + 40 + Math.cos(time * 2.2 + textHash) * 30;
+          if (isVeryShortText) {
+            // Single character: simple, clear fingerspelling gesture
+            const gestureIntensity = textVariation;
+            leftElbowX = leftShoulderX - 20;
+            leftElbowY = shoulderY + 80;
+            leftHandX = leftElbowX - 10 + gestureIntensity * 30;
+            leftHandY = leftElbowY + 20 - gestureIntensity * 15;
+
+            rightElbowX = rightShoulderX + 20;
+            rightElbowY = shoulderY + 80;
+            rightHandX = rightElbowX + 10 + gestureIntensity * 30;
+            rightHandY = rightElbowY + 20 - gestureIntensity * 15;
+          } else {
+            // Longer text: more dynamic gestures
+            const armAnimation = Math.sin(time + textHash * 0.01) * 0.3;
+            leftElbowX =
+              leftShoulderX - 30 + Math.sin(time + shortTextVariation) * 40;
+            leftElbowY = shoulderY + 60 + armAnimation * 20;
+            leftHandX =
+              leftElbowX -
+              20 +
+              Math.cos(time + textHash * 0.01 + shortTextVariation) * 50;
+            leftHandY =
+              leftElbowY + 40 + Math.sin(time * 1.5 + shortTextVariation) * 30;
+
+            rightElbowX =
+              rightShoulderX + 30 + Math.cos(time + shortTextVariation) * 40;
+            rightElbowY = shoulderY + 60 - armAnimation * 20;
+            rightHandX =
+              rightElbowX +
+              20 +
+              Math.sin(time + textHash * 0.01 + shortTextVariation) * 50;
+            rightHandY =
+              rightElbowY + 40 + Math.cos(time * 1.5 + shortTextVariation) * 30;
+          }
 
           // Left arm
           ctx.beginPath();
@@ -219,12 +283,29 @@ export default function EnhancedTranslationOutput({
           ctx.arc(leftHandX, leftHandY, 12, 0, 2 * Math.PI);
           ctx.fill();
 
-          // Left hand fingers
+          // Left hand fingers - adaptive based on text length
           for (let i = 0; i < 5; i++) {
-            const fingerAngle =
-              (i - 2) * 0.3 + Math.sin(time * 3 + i + textHash) * 0.2;
-            const fingerX = leftHandX + Math.cos(fingerAngle) * 20;
-            const fingerY = leftHandY + Math.sin(fingerAngle) * 20;
+            let fingerAngle, fingerX, fingerY;
+
+            if (isVeryShortText) {
+              // Single character: specific finger positions for clear fingerspelling
+              const fingerPositions = [
+                -0.8,
+                -0.4,
+                0,
+                0.4,
+                0.8, // Spread fingers clearly
+              ];
+              fingerAngle = fingerPositions[i] + textVariation * 0.1;
+              fingerX = leftHandX + Math.cos(fingerAngle) * 15;
+              fingerY = leftHandY + Math.sin(fingerAngle) * 15;
+            } else {
+              // Dynamic finger movement for longer text
+              fingerAngle =
+                (i - 2) * 0.3 + Math.sin(time * 3 + i + textHash) * 0.2;
+              fingerX = leftHandX + Math.cos(fingerAngle) * 20;
+              fingerY = leftHandY + Math.sin(fingerAngle) * 20;
+            }
 
             ctx.beginPath();
             ctx.arc(fingerX, fingerY, 3, 0, 2 * Math.PI);
@@ -244,12 +325,29 @@ export default function EnhancedTranslationOutput({
           ctx.arc(rightHandX, rightHandY, 12, 0, 2 * Math.PI);
           ctx.fill();
 
-          // Right hand fingers
+          // Right hand fingers - adaptive based on text length
           for (let i = 0; i < 5; i++) {
-            const fingerAngle =
-              (i - 2) * 0.3 + Math.cos(time * 2.8 + i + textHash) * 0.2;
-            const fingerX = rightHandX + Math.cos(fingerAngle) * 20;
-            const fingerY = rightHandY + Math.sin(fingerAngle) * 20;
+            let fingerAngle, fingerX, fingerY;
+
+            if (isVeryShortText) {
+              // Single character: specific finger positions for clear fingerspelling
+              const fingerPositions = [
+                -0.8,
+                -0.4,
+                0,
+                0.4,
+                0.8, // Spread fingers clearly
+              ];
+              fingerAngle = fingerPositions[i] + textVariation * 0.1;
+              fingerX = rightHandX + Math.cos(fingerAngle) * 15;
+              fingerY = rightHandY + Math.sin(fingerAngle) * 15;
+            } else {
+              // Dynamic finger movement for longer text
+              fingerAngle =
+                (i - 2) * 0.3 + Math.cos(time * 2.8 + i + textHash) * 0.2;
+              fingerX = rightHandX + Math.cos(fingerAngle) * 20;
+              fingerY = rightHandY + Math.sin(fingerAngle) * 20;
+            }
 
             ctx.beginPath();
             ctx.arc(fingerX, fingerY, 3, 0, 2 * Math.PI);
@@ -493,7 +591,7 @@ export default function EnhancedTranslationOutput({
 
   // Action buttons
   const ActionButtons = () => (
-    <div className="flex items-center gap-2 mt-4">
+    <div className="flex items-center justify-center gap-4 mt-6">
       {state.signedLanguageVideo &&
         (state.signedLanguageVideo.startsWith("blob:") ||
           state.signedLanguageVideo.startsWith("data:video/") ||
@@ -502,30 +600,30 @@ export default function EnhancedTranslationOutput({
             <button
               type="button"
               onClick={copySignedLanguageVideo}
-              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors shadow-sm"
               title="Copy video"
             >
-              <Copy className="w-4 h-4" />
+              <Copy className="w-5 h-5" />
               Copy
             </button>
 
             <button
               type="button"
               onClick={shareSignedLanguageVideo}
-              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors shadow-sm"
               title="Share video"
             >
-              <Share2 className="w-4 h-4" />
+              <Share2 className="w-5 h-5" />
               Share
             </button>
 
             <button
               type="button"
               onClick={downloadSignedLanguageVideo}
-              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors shadow-sm"
               title="Download video"
             >
-              <Download className="w-4 h-4" />
+              <Download className="w-5 h-5" />
               Download
             </button>
           </>
@@ -535,12 +633,12 @@ export default function EnhancedTranslationOutput({
         <button
           type="button"
           onClick={loadVideo}
-          className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/20 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/30 transition-colors"
+          className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/20 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/30 transition-colors shadow-sm"
           disabled={isVideoLoading}
           title="Regenerate video"
         >
           <RotateCcw
-            className={`w-4 h-4 ${isVideoLoading ? "animate-spin" : ""}`}
+            className={`w-5 h-5 ${isVideoLoading ? "animate-spin" : ""}`}
           />
           {isVideoLoading ? "Generating..." : "Regenerate"}
         </button>
@@ -549,9 +647,9 @@ export default function EnhancedTranslationOutput({
   );
 
   return (
-    <div className={`space-y-4 ${className}`}>
-      {/* Video display area */}
-      <div className="relative aspect-video bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+    <div className={`space-y-6 ${className}`}>
+      {/* Video display area - larger size */}
+      <div className="relative w-full h-96 lg:h-[500px] xl:h-[600px] bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg">
         {/* Loading state */}
         {(isVideoLoading || isLoadingPose) && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -622,16 +720,32 @@ export default function EnhancedTranslationOutput({
               <video
                 ref={videoRef}
                 src={state.signedLanguageVideo}
-                className="w-full h-full object-contain cursor-pointer"
+                className="w-full h-full object-contain cursor-pointer rounded-lg"
                 controls
                 loop
+                autoPlay
                 muted
                 playsInline
                 onClick={handleVideoClick}
                 onError={handleVideoError}
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
-                onEnded={() => setIsPlaying(false)}
+                onEnded={() => {
+                  // Reset to beginning and restart for seamless loop
+                  setTimeout(() => {
+                    if (videoRef.current) {
+                      videoRef.current.currentTime = 0;
+                      videoRef.current.play().catch(console.error);
+                      setIsPlaying(true);
+                    }
+                  }, 50); // Small delay for smooth restart
+                }}
+                onLoadedData={() => {
+                  // Auto-play when video is loaded
+                  if (videoRef.current) {
+                    videoRef.current.play().catch(console.error);
+                  }
+                }}
               />
               <ViewerSelector />
             </>
@@ -673,6 +787,7 @@ export default function EnhancedTranslationOutput({
                     className="w-full h-full"
                     showControls={true}
                     background="transparent"
+                    loop={true}
                   />
 
                   {/* Overlay controls */}

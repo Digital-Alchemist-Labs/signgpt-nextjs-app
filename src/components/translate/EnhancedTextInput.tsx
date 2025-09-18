@@ -214,8 +214,12 @@ export default function EnhancedTextInput({
     utterance.pitch = 1;
 
     utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
+    utterance.onend = () => {
+      setIsSpeaking(false);
+    };
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+    };
 
     speechSynthesis.speak(utterance);
   }, [
@@ -238,14 +242,20 @@ export default function EnhancedTextInput({
       textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${Math.min(
         textareaRef.current.scrollHeight,
-        200
+        300
       )}px`;
     }
   }, [state.spokenLanguageText]);
 
+  // Do not auto-move focus; allow the browser/user to control caret position
+  // Removed previous auto-focus and re-focus effects to prevent caret jumping
+
   const characterCount = state.spokenLanguageText.length;
   const isNearLimit = characterCount > maxLength * 0.8;
   const isOverLimit = characterCount > maxLength;
+
+  // Do not force refocus after button interactions; keep caret position intact
+  const refocusTextarea = useCallback(() => {}, []);
 
   return (
     <div className={`space-y-3 ${className}`}>
@@ -257,12 +267,12 @@ export default function EnhancedTextInput({
           onChange={handleTextChange}
           placeholder={placeholder}
           maxLength={maxLength}
-          className={`w-full px-4 py-3 pr-16 text-base border rounded-lg resize-none transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+          className={`w-full px-4 py-4 pr-16 text-lg border rounded-lg resize-none transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
             isOverLimit
               ? "border-red-500 dark:border-red-400 bg-red-50 dark:bg-red-900/20"
               : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
           } text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400`}
-          style={{ minHeight: "60px", maxHeight: "200px" }}
+          style={{ minHeight: "80px", maxHeight: "300px" }}
         />
 
         {/* Character count */}
@@ -286,7 +296,14 @@ export default function EnhancedTextInput({
           {showSpeechToText && recognition && (
             <button
               type="button"
-              onClick={isListening ? stopListening : startListening}
+              onClick={() => {
+                if (isListening) {
+                  stopListening();
+                } else {
+                  startListening();
+                }
+                refocusTextarea();
+              }}
               className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                 isListening
                   ? "bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/30"
@@ -309,7 +326,10 @@ export default function EnhancedTextInput({
             state.spokenLanguageText.trim() && (
               <button
                 type="button"
-                onClick={speakText}
+                onClick={() => {
+                  speakText();
+                  refocusTextarea();
+                }}
                 className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                   isSpeaking
                     ? "bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/30"
@@ -325,7 +345,10 @@ export default function EnhancedTextInput({
           {state.spokenLanguageText.trim() && (
             <button
               type="button"
-              onClick={copySpokenLanguageText}
+              onClick={() => {
+                copySpokenLanguageText();
+                refocusTextarea();
+              }}
               className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
             >
               <Copy className="w-4 h-4" />
@@ -361,7 +384,10 @@ export default function EnhancedTextInput({
                 </p>
                 <button
                   type="button"
-                  onClick={applySuggestion}
+                  onClick={() => {
+                    applySuggestion();
+                    refocusTextarea();
+                  }}
                   className="px-3 py-1 text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-800 rounded hover:bg-blue-200 dark:hover:bg-blue-700 transition-colors"
                 >
                   Use suggestion

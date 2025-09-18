@@ -4,8 +4,8 @@ import React, { useRef, useEffect, useCallback, useState } from "react";
 import { useTranslation } from "@/contexts/TranslationContext";
 
 // Declare pose-viewer custom element types
-// eslint-disable-next-line @typescript-eslint/no-namespace
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace JSX {
     interface IntrinsicElements {
       "pose-viewer": {
@@ -34,6 +34,7 @@ export interface PoseViewerProps {
   className?: string;
   showControls?: boolean;
   background?: string;
+  loop?: boolean; // Enable/disable looping
 }
 
 /**
@@ -45,6 +46,7 @@ export const PoseViewer: React.FC<PoseViewerProps> = ({
   className = "",
   showControls = false,
   background = "transparent",
+  loop = true,
 }) => {
   const poseViewerRef = useRef<HTMLPoseViewerElement>(null);
   const [isCustomElementLoaded, setIsCustomElementLoaded] = useState(false);
@@ -82,19 +84,40 @@ export const PoseViewer: React.FC<PoseViewerProps> = ({
 
     const poseViewer = poseViewerRef.current;
 
-    const handleFirstRender = () => {
+    const handleFirstRender = async () => {
       console.log("Pose viewer first render");
       poseViewer.currentTime = 0; // Force time back to 0
+      // Auto-start the animation
+      try {
+        await poseViewer.play();
+        setIsPlaying(true);
+      } catch (error) {
+        console.error("Failed to auto-start pose animation:", error);
+      }
     };
 
     const handleRender = () => {
       // Handle render events for video generation if needed
     };
 
-    const handleEnded = () => {
+    const handleEnded = async () => {
       console.log("Pose animation ended");
-      setIsPlaying(false);
-      // Could trigger video generation here
+      if (loop) {
+        console.log("Restarting from beginning for seamless loop");
+        // Add a small delay to ensure clean restart
+        setTimeout(async () => {
+          try {
+            poseViewer.currentTime = 0;
+            await poseViewer.play();
+            setIsPlaying(true);
+          } catch (error) {
+            console.error("Failed to restart pose animation:", error);
+            setIsPlaying(false);
+          }
+        }, 100); // 100ms delay for smooth transition
+      } else {
+        setIsPlaying(false);
+      }
     };
 
     // Add event listeners
@@ -107,7 +130,7 @@ export const PoseViewer: React.FC<PoseViewerProps> = ({
       poseViewer.removeEventListener("render$", handleRender);
       poseViewer.removeEventListener("ended$", handleEnded);
     };
-  }, [isCustomElementLoaded, src]);
+  }, [isCustomElementLoaded, src, loop]);
 
   // Handle play/pause
   const handlePlayPause = useCallback(async () => {
@@ -188,6 +211,7 @@ export const PoseViewer: React.FC<PoseViewerProps> = ({
   return (
     <div className={`pose-viewer-container ${className}`}>
       <div className="relative">
+        {/* @ts-expect-error Custom element not recognized by TypeScript */}
         <pose-viewer
           ref={poseViewerRef}
           src={src}

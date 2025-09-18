@@ -77,9 +77,9 @@ export default function TranslatePage() {
 
   // Enhanced UI for desktop
   const EnhancedDesktopUI = () => (
-    <div className="max-w-6xl mx-auto px-4 py-6">
+    <div className="max-w-7xl mx-auto px-6 py-8">
       {/* Language selection header */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex items-center gap-6 mb-8">
         <div className="flex-1">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             {state.spokenToSigned ? "From (Spoken)" : "From (Signed)"}
@@ -128,10 +128,10 @@ export default function TranslatePage() {
       </div>
 
       {/* Translation interface */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         {/* Input side */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <div className="space-y-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
             {state.spokenToSigned ? "Enter Text" : "Sign Language Input"}
           </h2>
 
@@ -149,8 +149,8 @@ export default function TranslatePage() {
         </div>
 
         {/* Output side */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <div className="space-y-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
             {state.spokenToSigned
               ? "Sign Language Translation"
               : "Text Translation"}
