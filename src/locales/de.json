@@ -1,0 +1,28 @@
+{
+  "translate": {
+    "title": "Sign Translate",
+    "description": "Mühelose Gebärdensprach-Übersetzung mit modernsten Echtzeit-Modellen"
+  },
+  "landing": {
+    "try": "Jetzt ausprobieren",
+    "about": {
+      "title": "Über uns"
+    },
+    "contribute": {
+      "title": "Mitwirken"
+    }
+  },
+  "common": {
+    "loading": "Lädt...",
+    "error": "Ein Fehler ist aufgetreten",
+    "retry": "Wiederholen",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "close": "Schließen",
+    "home": "Start",
+    "settings": "Einstellungen"
+  }
+}
+

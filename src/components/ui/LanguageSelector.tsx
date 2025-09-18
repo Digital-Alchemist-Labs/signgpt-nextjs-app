@@ -1,0 +1,67 @@
+"use client";
+
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useSettings } from "@/contexts/SettingsContext";
+import { ChevronDown } from "lucide-react";
+
+const languages = [
+	{ code: "en", name: "English", flag: "🇺🇸" },
+	{ code: "de", name: "Deutsch", flag: "🇩🇪" },
+	{ code: "fr", name: "Français", flag: "🇫🇷" },
+	{ code: "es", name: "Español", flag: "🇪🇸" },
+	{ code: "it", name: "Italiano", flag: "🇮🇹" },
+	{ code: "pt", name: "Português", flag: "🇵🇹" },
+	{ code: "ru", name: "Русский", flag: "🇷🇺" },
+	{ code: "zh", name: "中文", flag: "🇨🇳" },
+	{ code: "ja", name: "日本語", flag: "🇯🇵" },
+	{ code: "ko", name: "한국어", flag: "🇰🇷" },
+	{ code: "ar", name: "العربية", flag: "🇸🇦" },
+	{ code: "hi", name: "हिन्दी", flag: "🇮🇳" },
+];
+
+export default function LanguageSelector() {
+	const { i18n } = useTranslation();
+	const { updateSetting } = useSettings();
+	const [isOpen, setIsOpen] = useState(false);
+
+	const currentLanguage =
+		languages.find((lang) => lang.code === i18n.language) || languages[0];
+
+	const handleLanguageChange = (languageCode: string) => {
+		i18n.changeLanguage(languageCode);
+		updateSetting("language", languageCode);
+		setIsOpen(false);
+	};
+
+	return (
+		<div className="relative">
+			<button
+				onClick={() => setIsOpen(!isOpen)}
+				className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-foreground hover:text-foreground/80 transition-colors rounded-md hover:bg-accent">
+				<span className="text-lg">{currentLanguage.flag}</span>
+				<span>{currentLanguage.name}</span>
+				<ChevronDown className="h-4 w-4" />
+			</button>
+
+			{isOpen && (
+				<div className="absolute right-0 mt-2 w-48 bg-background border rounded-md shadow-lg z-50">
+					<div className="py-1">
+						{languages.map((language) => (
+							<button
+								key={language.code}
+								onClick={() => handleLanguageChange(language.code)}
+								className={`w-full text-left px-4 py-2 text-sm hover:bg-accent transition-colors flex items-center space-x-3 ${
+									language.code === i18n.language ? "bg-accent" : ""
+								}`}>
+								<span className="text-lg">{language.flag}</span>
+								<span>{language.name}</span>
+							</button>
+						))}
+					</div>
+				</div>
+			)}
+		</div>
+	);
+}
+

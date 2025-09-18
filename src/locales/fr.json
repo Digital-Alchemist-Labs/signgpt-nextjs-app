@@ -1,0 +1,28 @@
+{
+  "translate": {
+    "title": "Sign Translate",
+    "description": "Traduction de langue des signes sans effort avec des modèles en temps réel de pointe"
+  },
+  "landing": {
+    "try": "Essayer maintenant",
+    "about": {
+      "title": "À propos"
+    },
+    "contribute": {
+      "title": "Contribuer"
+    }
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur s'est produite",
+    "retry": "Réessayer",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "close": "Fermer",
+    "home": "Accueil",
+    "settings": "Paramètres"
+  }
+}
+
