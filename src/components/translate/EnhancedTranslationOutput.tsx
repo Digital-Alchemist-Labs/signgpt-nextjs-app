@@ -652,7 +652,10 @@ export default function EnhancedTranslationOutput({
       <div className="relative w-full h-96 lg:h-[500px] xl:h-[600px] bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg">
         {/* Loading state */}
         {(isVideoLoading || isLoadingPose) && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+          <div
+            className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-900"
+            tabIndex={-1}
+          >
             <div className="text-center space-y-3">
               <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -671,7 +674,10 @@ export default function EnhancedTranslationOutput({
 
         {/* Error state */}
         {videoError && (
-          <div className="absolute inset-0 flex items-center justify-center bg-red-50 dark:bg-red-900/20">
+          <div
+            className="absolute inset-0 flex items-center justify-center bg-red-50 dark:bg-red-900/20"
+            tabIndex={-1}
+          >
             <div className="text-center space-y-2">
               <div className="text-red-600 dark:text-red-400 text-sm font-medium">
                 {videoError}
@@ -691,7 +697,10 @@ export default function EnhancedTranslationOutput({
         {state.signedLanguageVideo &&
           state.signedLanguageVideo.startsWith("POSE_VIDEO_GENERATED:") &&
           !isVideoLoading && (
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div
+              className="absolute inset-0 flex items-center justify-center"
+              tabIndex={-1}
+            >
               <div className="text-center space-y-4">
                 <div className="text-6xl">🎬</div>
                 <div className="text-green-600 dark:text-green-400 font-medium">
@@ -721,11 +730,15 @@ export default function EnhancedTranslationOutput({
                 ref={videoRef}
                 src={state.signedLanguageVideo}
                 className="w-full h-full object-contain cursor-pointer rounded-lg"
+                tabIndex={-1}
+                onFocus={(e) => e.currentTarget.blur()}
                 controls
                 loop
                 autoPlay
                 muted
                 playsInline
+                onMouseDown={(e) => e.preventDefault()}
+                onPointerDown={(e) => e.preventDefault()}
                 onClick={handleVideoClick}
                 onError={handleVideoError}
                 onPlay={() => setIsPlaying(true)}

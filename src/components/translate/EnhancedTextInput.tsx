@@ -92,6 +92,16 @@ export default function EnhancedTextInput({
   const [isSpeaking, setIsSpeaking] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const textDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const suggestDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const [localText, setLocalText] = useState<string>("");
+  const selectionRef = useRef<{ start: number; end: number } | null>(null);
+  const isComposingRef = useRef<boolean>(false);
+  const allowBlurRef = useRef<boolean>(false);
+  const hadFocusRef = useRef<boolean>(false);
+  const isTypingRef = useRef<boolean>(false);
+  const typingTimeoutRef = useRef<number | null>(null);
+  const focusGuardActiveRef = useRef<boolean>(false);
 
   // Initialize speech recognition and synthesis
   useEffect(() => {
@@ -125,10 +135,20 @@ export default function EnhancedTextInput({
         }
 
         if (finalTranscript) {
-          const currentText = state.spokenLanguageText;
+          const currentText = localText;
           const newText =
             currentText + (currentText ? " " : "") + finalTranscript;
-          setSpokenLanguageText(newText);
+          setLocalText(newText);
+          // debounce push to global state
+          if (textDebounceRef.current) clearTimeout(textDebounceRef.current);
+          textDebounceRef.current = setTimeout(() => {
+            setSpokenLanguageText(newText);
+          }, 300);
+          if (suggestDebounceRef.current)
+            clearTimeout(suggestDebounceRef.current);
+          suggestDebounceRef.current = setTimeout(() => {
+            suggestAlternativeText();
+          }, 1000);
         }
       };
 
@@ -166,23 +186,187 @@ export default function EnhancedTextInput({
   // Handle text changes with debounced suggestion
   const handleTextChange = useCallback(
     (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-      const newText = event.target.value;
+      const target = event.target;
+      const newText = target.value;
+      // Capture current selection to preserve caret position across controlled updates
+      try {
+        selectionRef.current = {
+          start: target.selectionStart ?? newText.length,
+          end: target.selectionEnd ?? newText.length,
+        };
+      } catch {
+        selectionRef.current = null;
+      }
       console.log("EnhancedTextInput.handleTextChange called with:", newText);
-      setSpokenLanguageText(newText);
+      setLocalText(newText);
+
+      // Debounce updates to global state (similar to original Angular app)
+      if (textDebounceRef.current) clearTimeout(textDebounceRef.current);
+      textDebounceRef.current = setTimeout(() => {
+        setSpokenLanguageText(newText);
+      }, 300);
 
       // Debounce suggestion requests
-      if (showSuggestions && debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
+      if (showSuggestions) {
+        if (suggestDebounceRef.current)
+          clearTimeout(suggestDebounceRef.current);
+        if (newText.trim()) {
+          suggestDebounceRef.current = setTimeout(() => {
+            suggestAlternativeText();
+          }, 1000);
+        }
       }
-
-      if (showSuggestions && newText.trim()) {
-        debounceTimerRef.current = setTimeout(() => {
-          suggestAlternativeText();
-        }, 1000);
+      // Restore selection in next frame to avoid caret jump (when not composing)
+      if (!isComposingRef.current) {
+        requestAnimationFrame(() => {
+          const ta = textareaRef.current;
+          const sel = selectionRef.current;
+          if (ta && sel && document.activeElement === ta) {
+            try {
+              ta.setSelectionRange(sel.start, sel.end);
+            } catch {}
+          }
+        });
       }
     },
     [setSpokenLanguageText, suggestAlternativeText, showSuggestions]
   );
+
+  // Sync local text with global state when it changes externally
+  useEffect(() => {
+    const global = state.spokenLanguageText ?? "";
+    if (
+      !isComposingRef.current &&
+      !isTypingRef.current &&
+      global !== localText
+    ) {
+      setLocalText(global);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.spokenLanguageText]);
+
+  const handleKeyDown = useCallback(() => {
+    isTypingRef.current = true;
+    if (typingTimeoutRef.current) {
+      window.clearTimeout(typingTimeoutRef.current);
+    }
+    typingTimeoutRef.current = window.setTimeout(() => {
+      isTypingRef.current = false;
+      typingTimeoutRef.current = null;
+    }, 1200);
+
+    // Start focus guard loop while typing (avoid IME interference)
+    if (!focusGuardActiveRef.current && !isComposingRef.current) {
+      focusGuardActiveRef.current = true;
+      const loop = () => {
+        if (!isTypingRef.current || isComposingRef.current) {
+          focusGuardActiveRef.current = false;
+          return;
+        }
+        const ta = textareaRef.current;
+        if (ta && document.activeElement !== ta) {
+          try {
+            ta.focus();
+          } catch {}
+        }
+        requestAnimationFrame(loop);
+      };
+      requestAnimationFrame(loop);
+    }
+  }, []);
+
+  const handleKeyUp = useCallback(() => {
+    // Extend typing window slightly on key up
+    if (typingTimeoutRef.current) {
+      window.clearTimeout(typingTimeoutRef.current);
+    }
+    typingTimeoutRef.current = window.setTimeout(() => {
+      isTypingRef.current = false;
+      typingTimeoutRef.current = null;
+    }, 800);
+  }, []);
+
+  // IME composition handlers to avoid interfering with Korean/Japanese input
+  const handleCompositionStart = useCallback(() => {
+    isComposingRef.current = true;
+  }, []);
+  const handleCompositionEnd = useCallback(() => {
+    isComposingRef.current = false;
+    // After composition ends, ensure caret is in intended place
+    const ta = textareaRef.current;
+    if (ta) {
+      requestAnimationFrame(() => {
+        const len = ta.value.length;
+        try {
+          ta.setSelectionRange(len, len);
+        } catch {}
+      });
+    }
+  }, []);
+
+  const handleFocus = useCallback(() => {
+    hadFocusRef.current = true;
+  }, []);
+
+  // Track user-initiated pointer interactions to allow intentional blur
+  useEffect(() => {
+    const onPointerDown = (e: PointerEvent) => {
+      const ta = textareaRef.current;
+      if (!ta) return;
+      // Allow blur only if pointer is outside textarea
+      allowBlurRef.current = !ta.contains(e.target as Node);
+    };
+    const onPointerUp = () => {
+      // Reset after interaction
+      allowBlurRef.current = false;
+    };
+    window.addEventListener("pointerdown", onPointerDown, true);
+    window.addEventListener("pointerup", onPointerUp, true);
+    return () => {
+      window.removeEventListener("pointerdown", onPointerDown, true);
+      window.removeEventListener("pointerup", onPointerUp, true);
+    };
+  }, []);
+
+  const handleBlur = useCallback(
+    (e?: React.FocusEvent<HTMLTextAreaElement>) => {
+      // Prevent unintended blur (e.g., due to background updates)
+      const movingTo = e?.relatedTarget as HTMLElement | null;
+      const intentional = allowBlurRef.current || !!movingTo;
+      if (!intentional) {
+        hadFocusRef.current = true;
+        const ta = textareaRef.current;
+        if (ta) {
+          requestAnimationFrame(() => {
+            try {
+              ta.focus();
+            } catch {}
+          });
+        }
+      }
+    },
+    []
+  );
+
+  // If textarea had focus and external state changes (video/pose/translation), keep focus
+  useEffect(() => {
+    if (hadFocusRef.current && !isComposingRef.current) {
+      const ta = textareaRef.current;
+      if (ta && document.activeElement !== ta) {
+        requestAnimationFrame(() => {
+          try {
+            ta.focus();
+          } catch {}
+        });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    state.signedLanguagePose,
+    state.signedLanguageVideo,
+    state.videoUrl,
+    state.isTranslating,
+  ]);
 
   // Speech recognition controls
   const startListening = useCallback(() => {
@@ -263,8 +447,14 @@ export default function EnhancedTextInput({
       <div className="relative">
         <textarea
           ref={textareaRef}
-          value={state.spokenLanguageText}
+          value={localText}
           onChange={handleTextChange}
+          onKeyDown={handleKeyDown}
+          onKeyUp={handleKeyUp}
+          onCompositionStart={handleCompositionStart}
+          onCompositionEnd={handleCompositionEnd}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           placeholder={placeholder}
           maxLength={maxLength}
           className={`w-full px-4 py-4 pr-16 text-lg border rounded-lg resize-none transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${

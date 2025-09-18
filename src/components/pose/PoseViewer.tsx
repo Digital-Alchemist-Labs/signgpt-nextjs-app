@@ -220,6 +220,25 @@ export const PoseViewer: React.FC<PoseViewerProps> = ({
             height: "100%",
             background: background,
           }}
+          tabIndex={-1}
+          onFocusCapture={() => {
+            try {
+              const el = poseViewerRef.current as unknown as {
+                blur?: () => void;
+              } | null;
+              el?.blur?.();
+            } catch {}
+          }}
+          onPointerDown={(e: unknown) => {
+            try {
+              (e as Event).preventDefault?.();
+            } catch {}
+          }}
+          onMouseDown={(e: unknown) => {
+            try {
+              (e as Event).preventDefault?.();
+            } catch {}
+          }}
         />
 
         {showControls && (
