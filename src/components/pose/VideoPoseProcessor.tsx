@@ -9,12 +9,14 @@ export interface VideoPoseProcessorProps {
   className?: string;
   showPoseViewer?: boolean;
   onPoseDetected?: (pose: EstimatedPose) => void;
+  autoStart?: boolean;
 }
 
 export const VideoPoseProcessor: React.FC<VideoPoseProcessorProps> = ({
   className = "",
   showPoseViewer = true,
   onPoseDetected,
+  autoStart = false,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -28,10 +30,29 @@ export const VideoPoseProcessor: React.FC<VideoPoseProcessorProps> = ({
         await loadModel();
       }
 
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 640, height: 480 },
-        audio: false,
-      });
+      const tryGetStream = async (): Promise<MediaStream> => {
+        const attempts: MediaStreamConstraints[] = [
+          { video: { facingMode: "user" }, audio: false },
+          { video: true, audio: false },
+          {
+            video: { width: { ideal: 640 }, height: { ideal: 480 } },
+            audio: false,
+          },
+          { video: { width: 320, height: 240 }, audio: false },
+        ];
+        let lastError: unknown;
+        for (const constraints of attempts) {
+          try {
+            // eslint-disable-next-line no-await-in-loop
+            return await navigator.mediaDevices.getUserMedia(constraints);
+          } catch (err) {
+            lastError = err;
+          }
+        }
+        throw lastError;
+      };
+
+      const mediaStream = await tryGetStream();
 
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
@@ -42,7 +63,26 @@ export const VideoPoseProcessor: React.FC<VideoPoseProcessorProps> = ({
       setIsRecording(true);
     } catch (error) {
       console.error("Failed to start camera:", error);
-      alert("Failed to access camera. Please check permissions.");
+      const err = error as { name?: string; message?: string };
+      let hint = "Failed to access camera.";
+      switch (err?.name) {
+        case "NotAllowedError":
+        case "SecurityError":
+          hint =
+            "Camera access is blocked. Check browser site settings for this page and macOS System Settings > Privacy & Security > Camera.";
+          break;
+        case "NotFoundError":
+          hint =
+            "No camera found. Ensure a camera is connected and not in use by another app.";
+          break;
+        case "NotReadableError":
+          hint =
+            "Camera is busy. Close other apps (Zoom/Meet/Teams) using the camera and try again.";
+          break;
+        default:
+          hint = err?.message || hint;
+      }
+      alert(hint);
     }
   }, [state.isLoaded, loadModel]);
 
@@ -123,6 +163,27 @@ export const VideoPoseProcessor: React.FC<VideoPoseProcessorProps> = ({
 
     return cleanup;
   }, [isRecording, startPoseDetection]);
+
+  // Auto-start camera on mount when requested
+  React.useEffect(() => {
+    let stopped = false;
+    const open = async () => {
+      if (autoStart && !isRecording) {
+        try {
+          await startCamera();
+        } catch (e) {
+          console.error("Auto-start camera failed:", e);
+        }
+      }
+    };
+    void open();
+    return () => {
+      if (!stopped && isRecording) {
+        stopCamera();
+        stopped = true;
+      }
+    };
+  }, [autoStart, isRecording, startCamera, stopCamera]);
 
   return (
     <div className={`video-pose-processor ${className}`}>

@@ -76,13 +76,14 @@ export class PoseService {
     });
 
     this.model.setOptions({
-      upperBodyOnly: false,
       modelComplexity: 1,
+      smoothLandmarks: true,
+      refineFaceLandmarks: true,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5,
     });
 
-    await this.model.initialize();
-
-    // Send an empty frame, to force the mediapipe computation graph to load
+    // Send an empty frame to force the mediapipe computation graph to load
     const frame = document.createElement("canvas");
     frame.width = 256;
     frame.height = 256;

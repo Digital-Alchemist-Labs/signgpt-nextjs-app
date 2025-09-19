@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { TranslationProvider } from "@/contexts/TranslationContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { PoseProvider } from "@/contexts/PoseContext";
+import { SignRecognitionProvider } from "@/contexts/SignRecognitionContext";
 
 interface ProvidersProps {
   children: ReactNode;
@@ -18,7 +19,9 @@ export function Providers({ children }: ProvidersProps) {
       <ThemeProvider>
         <SettingsProvider>
           <PoseProvider>
-            <TranslationProvider>{children}</TranslationProvider>
+            <SignRecognitionProvider>
+              <TranslationProvider>{children}</TranslationProvider>
+            </SignRecognitionProvider>
           </PoseProvider>
         </SettingsProvider>
       </ThemeProvider>

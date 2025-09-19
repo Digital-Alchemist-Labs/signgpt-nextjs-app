@@ -69,7 +69,8 @@ const defaultConfig: EnvironmentConfig = {
 
   // MediaPipe Configuration
   mediaPipeModelPath:
-    process.env.NEXT_PUBLIC_MEDIAPIPE_MODEL_PATH || "/assets/models/holistic/",
+    process.env.NEXT_PUBLIC_MEDIAPIPE_MODEL_PATH ||
+    "https://cdn.jsdelivr.net/npm/@mediapipe/holistic@0.5.1675471629/",
 
   // Feature Flags
   enableAnalytics: process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === "true",

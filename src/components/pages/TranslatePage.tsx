@@ -10,6 +10,7 @@ import EnhancedLanguageSelector from "@/components/ui/EnhancedLanguageSelector";
 import EnhancedTextInput from "@/components/translate/EnhancedTextInput";
 import EnhancedTranslationOutput from "@/components/translate/EnhancedTranslationOutput";
 import DropPoseFile from "@/components/pose/DropPoseFile";
+import SignToText from "@/components/pose/SignToText";
 import { ArrowLeftRight } from "lucide-react";
 
 export default function TranslatePage() {
@@ -129,7 +130,7 @@ export default function TranslatePage() {
 
       {/* Translation interface */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        {/* Input side */}
+        {/* Input side (left) */}
         <div className="space-y-6">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
             {state.spokenToSigned ? "Enter Text" : "Sign Language Input"}
@@ -144,7 +145,7 @@ export default function TranslatePage() {
               showSuggestions={true}
             />
           ) : (
-            <DropPoseFile className="h-full" />
+            <SignToText />
           )}
         </div>
 
@@ -159,11 +160,7 @@ export default function TranslatePage() {
           {state.spokenToSigned ? (
             <EnhancedTranslationOutput />
           ) : (
-            <div className="p-8 border border-gray-300 dark:border-gray-600 rounded-lg">
-              <p className="text-gray-500 dark:text-gray-400 text-center">
-                Translation will appear here...
-              </p>
-            </div>
+            <SignToText />
           )}
         </div>
       </div>
@@ -254,15 +251,8 @@ export default function TranslatePage() {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center p-4">
-            <div className="text-center">
-              <p className="text-gray-500 dark:text-gray-400">
-                Sign to text translation
-              </p>
-              <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">
-                Coming soon...
-              </p>
-            </div>
+          <div className="flex-1 p-4">
+            <SignToText />
           </div>
         )}
       </div>
