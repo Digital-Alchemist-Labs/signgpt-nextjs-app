@@ -11,107 +11,130 @@ import TranslationOutput from "@/components/translate/TranslationOutput";
 import SettingsPanel from "@/components/translate/SettingsPanel";
 
 export default function TranslateDesktop() {
-	const { t } = useTranslation();
-	const { settings, updateSetting } = useSettings();
-	const { state, setInputMode, setSourceText, setTranslatedText } =
-		useTranslationState();
-	const [isLoading, setIsLoading] = useState(false);
+  const { t } = useTranslation();
+  const { settings, updateSetting } = useSettings();
+  const { state, setInputMode, setSourceText, setTranslatedText } =
+    useTranslationState();
+  const [isLoading, setIsLoading] = useState(false);
 
-	const handleInputModeChange = (mode: "webcam" | "upload" | "text") => {
-		setInputMode(mode);
-	};
+  const handleInputModeChange = (mode: "webcam" | "upload" | "text") => {
+    setInputMode(mode);
+  };
 
-	const handleSourceTextChange = (text: string) => {
-		setSourceText(text);
-	};
+  const handleSourceTextChange = (text: string) => {
+    setSourceText(text);
+  };
 
-	const handleTranslation = async (text: string) => {
-		setIsLoading(true);
-		try {
-			// TODO: Implement actual translation logic
-			// This is a placeholder
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-			setTranslatedText(`Translated: ${text}`);
-		} catch (error) {
-			console.error("Translation failed:", error);
-		} finally {
-			setIsLoading(false);
-		}
-	};
+  const handleTranslation = async (text: string) => {
+    setIsLoading(true);
+    try {
+      // TODO: Implement actual translation logic
+      // This is a placeholder
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setTranslatedText(`Translated: ${text}`);
+    } catch (error) {
+      console.error("Translation failed:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-	return (
-		<div className="flex-1 flex flex-col lg:flex-row gap-6 p-6">
-			{/* Left Panel - Input */}
-			<div className="flex-1 flex flex-col space-y-6">
-				<div className="flex items-center justify-between">
-					<h1 className="text-2xl font-bold">{t("translate.title")}</h1>
-					<SettingsPanel />
-				</div>
+  return (
+    <div className="flex-1 flex flex-col lg:flex-row gap-8 p-6 max-w-7xl mx-auto">
+      {/* Left Panel - Input */}
+      <div className="flex-1 flex flex-col space-y-6 animate-slide-in">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            {t("translate.title")}
+          </h1>
+          <SettingsPanel />
+        </div>
 
-				{/* Input Mode Selector */}
-				<div className="flex space-x-2">
-					<button
-						onClick={() => handleInputModeChange("webcam")}
-						className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-							state.inputMode === "webcam"
-								? "bg-primary text-primary-foreground"
-								: "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-						}`}>
-						Camera
-					</button>
-					<button
-						onClick={() => handleInputModeChange("upload")}
-						className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-							state.inputMode === "upload"
-								? "bg-primary text-primary-foreground"
-								: "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-						}`}>
-						Upload
-					</button>
-					<button
-						onClick={() => handleInputModeChange("text")}
-						className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-							state.inputMode === "text"
-								? "bg-primary text-primary-foreground"
-								: "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-						}`}>
-						Text
-					</button>
-				</div>
+        {/* Input Mode Selector */}
+        <div className="flex space-x-2 p-1 bg-secondary/50 rounded-xl">
+          <button
+            onClick={() => handleInputModeChange("webcam")}
+            className={`px-6 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+              state.inputMode === "webcam"
+                ? "btn-gradient shadow-lg transform scale-105"
+                : "text-secondary-foreground hover:bg-secondary/80 hover:scale-102"
+            }`}
+          >
+            📹 Camera
+          </button>
+          <button
+            onClick={() => handleInputModeChange("upload")}
+            className={`px-6 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+              state.inputMode === "upload"
+                ? "btn-gradient shadow-lg transform scale-105"
+                : "text-secondary-foreground hover:bg-secondary/80 hover:scale-102"
+            }`}
+          >
+            📁 Upload
+          </button>
+          <button
+            onClick={() => handleInputModeChange("text")}
+            className={`px-6 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+              state.inputMode === "text"
+                ? "btn-gradient shadow-lg transform scale-105"
+                : "text-secondary-foreground hover:bg-secondary/80 hover:scale-102"
+            }`}
+          >
+            ✍️ Text
+          </button>
+        </div>
 
-				{/* Input Area */}
-				<div className="flex-1">
-					{state.inputMode === "webcam" && <VideoCapture />}
-					{state.inputMode === "upload" && (
-						<div className="flex-1 flex items-center justify-center border-2 border-dashed border-muted-foreground/25 rounded-lg p-8">
-							<div className="text-center">
-								<p className="text-muted-foreground">Upload video file</p>
-								<p className="text-sm text-muted-foreground mt-2">
-									Drag and drop or click to select
-								</p>
-							</div>
-						</div>
-					)}
-					{state.inputMode === "text" && (
-						<TextInput
-							value={state.sourceText}
-							onChange={handleSourceTextChange}
-							onTranslate={handleTranslation}
-							isLoading={isLoading}
-						/>
-					)}
-				</div>
+        {/* Input Area */}
+        <div className="flex-1 modern-card p-6">
+          {state.inputMode === "webcam" && <VideoCapture />}
+          {state.inputMode === "upload" && (
+            <div className="flex-1 flex items-center justify-center border-2 border-dashed border-muted-foreground/25 rounded-xl p-12 hover:border-primary/50 transition-colors">
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+                  <span className="text-2xl">📹</span>
+                </div>
+                <p className="text-lg font-medium text-muted-foreground mb-2">
+                  Upload video file
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Drag and drop or click to select a sign language video
+                </p>
+              </div>
+            </div>
+          )}
+          {state.inputMode === "text" && (
+            <TextInput
+              value={state.sourceText}
+              onChange={handleSourceTextChange}
+              onTranslate={handleTranslation}
+              isLoading={isLoading}
+            />
+          )}
+        </div>
 
-				{/* Language Selector */}
-				<LanguageSelector />
-			</div>
+        {/* Language Selector */}
+        <div className="modern-card p-4">
+          <LanguageSelector />
+        </div>
+      </div>
 
-			{/* Right Panel - Output */}
-			<div className="flex-1 flex flex-col space-y-6">
-				<h2 className="text-xl font-semibold">Translation</h2>
-				<TranslationOutput text={state.translatedText} isLoading={isLoading} />
-			</div>
-		</div>
-	);
+      {/* Right Panel - Output */}
+      <div
+        className="flex-1 flex flex-col space-y-6 animate-slide-in"
+        style={{ animationDelay: "0.2s" }}
+      >
+        <h2 className="text-2xl font-semibold text-center">
+          <span className="bg-gradient-to-r from-emerald-500 to-blue-500 bg-clip-text text-transparent">
+            Translation Result
+          </span>
+        </h2>
+        <div className="modern-card p-6 flex-1">
+          <TranslationOutput
+            text={state.translatedText}
+            isLoading={isLoading}
+          />
+        </div>
+      </div>
+    </div>
+  );
 }
-

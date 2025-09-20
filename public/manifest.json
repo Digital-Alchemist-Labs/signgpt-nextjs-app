@@ -1,11 +1,11 @@
 {
-  "name": "Sign Translate",
-  "short_name": "Sign Translate",
-  "description": "Effortless Sign Language Translation with Cutting-Edge Real-Time Models",
+  "name": "SignGPT",
+  "short_name": "SignGPT",
+  "description": "AI-Powered Sign Language Translation with Cutting-Edge Real-Time Models",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#3b82f6",
+  "theme_color": "#8b5cf6",
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "en",
@@ -69,4 +69,3 @@
   "related_applications": [],
   "prefer_related_applications": false
 }
-

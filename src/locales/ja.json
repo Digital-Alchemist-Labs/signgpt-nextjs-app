@@ -1,2 +1,23 @@
-{"translate":{"title":"手話翻訳","description":"最先端のリアルタイムモデルによる手話翻訳"},"landing":{"try":"今すぐ試す","about":{"title":"私たちについて"},"contribute":{"title":"貢献"}},"common":{"loading":"読み込み中...","error":"エラーが発生しました","retry":"再試行","cancel":"キャンセル","save":"保存","delete":"削除","edit":"編集","close":"閉じる","home":"ホーム","settings":"設定"}}
-
+{
+  "translate": {
+    "title": "SignGPT",
+    "description": "最先端のAIリアルタイムモデルによる手話翻訳"
+  },
+  "landing": {
+    "try": "今すぐ試す",
+    "about": { "title": "私たちについて" },
+    "contribute": { "title": "貢献" }
+  },
+  "common": {
+    "loading": "読み込み中...",
+    "error": "エラーが発生しました",
+    "retry": "再試行",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "delete": "削除",
+    "edit": "編集",
+    "close": "閉じる",
+    "home": "ホーム",
+    "settings": "設定"
+  }
+}

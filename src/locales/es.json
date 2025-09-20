@@ -1,7 +1,7 @@
 {
   "translate": {
-    "title": "Sign Translate",
-    "description": "Traducción de lenguaje de señas sin esfuerzo con modelos en tiempo real de vanguardia"
+    "title": "SignGPT",
+    "description": "Traducción de lenguaje de señas con IA usando modelos en tiempo real de vanguardia"
   },
   "landing": {
     "try": "Probar ahora",
@@ -25,4 +25,3 @@
     "settings": "Configuración"
   }
 }
-
