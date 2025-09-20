@@ -56,33 +56,75 @@ export const PoseViewer: React.FC<PoseViewerProps> = ({
 
   // Load the pose-viewer custom element
   const loadPoseViewerElement = useCallback(async () => {
+    console.log("Loading pose-viewer custom element...");
+
     if (customElements.get("pose-viewer")) {
+      console.log("Pose viewer custom element already exists");
       setIsCustomElementLoaded(true);
       return;
     }
 
     try {
+      console.log("Importing pose-viewer/loader...");
       // Dynamic import of pose-viewer
       const { defineCustomElements } = await import("pose-viewer/loader");
+      console.log("Defining custom elements...");
       await defineCustomElements();
       setIsCustomElementLoaded(true);
-      console.log("Pose viewer custom element loaded");
+      console.log("Pose viewer custom element loaded successfully");
     } catch (error) {
       console.error("Failed to load pose-viewer custom element:", error);
-      setError("Failed to load pose viewer");
+      setError(`Failed to load pose viewer: ${error}`);
     }
   }, []);
 
   // Initialize pose viewer
   useEffect(() => {
+    console.log("PoseViewer - Initializing pose viewer with src:", src);
     loadPoseViewerElement();
-  }, [loadPoseViewerElement]);
+  }, [loadPoseViewerElement, src]);
 
   // Set up event listeners when element is loaded
   useEffect(() => {
+    console.log("PoseViewer - Setting up event listeners", {
+      isCustomElementLoaded,
+      hasRef: !!poseViewerRef.current,
+      src,
+    });
+
     if (!isCustomElementLoaded || !poseViewerRef.current || !src) return;
 
     const poseViewer = poseViewerRef.current;
+
+    // Force containment styles on the pose-viewer element and its children (simplified)
+    const enforceContainment = () => {
+      try {
+        console.log("Applying containment styles to pose-viewer");
+
+        // Apply minimal necessary styles to the pose-viewer element
+        poseViewer.style.width = "100%";
+        poseViewer.style.height = "100%";
+        poseViewer.style.maxWidth = "100%";
+        poseViewer.style.maxHeight = "100%";
+        poseViewer.style.display = "block";
+
+        console.log("Containment styles applied successfully");
+      } catch (error) {
+        console.warn("Could not enforce containment styles:", error);
+      }
+    };
+
+    // Apply containment with delay to ensure element is ready
+    setTimeout(enforceContainment, 100);
+
+    // Simplified observer - only watch for major changes
+    const observer = new MutationObserver(() => {
+      setTimeout(enforceContainment, 50);
+    });
+    observer.observe(poseViewer, {
+      childList: true,
+      attributes: false, // Disable attribute watching to avoid conflicts
+    });
 
     const handleFirstRender = async () => {
       console.log("Pose viewer first render");
@@ -129,6 +171,7 @@ export const PoseViewer: React.FC<PoseViewerProps> = ({
       poseViewer.removeEventListener("firstRender$", handleFirstRender);
       poseViewer.removeEventListener("render$", handleRender);
       poseViewer.removeEventListener("ended$", handleEnded);
+      observer.disconnect();
     };
   }, [isCustomElementLoaded, src, loop]);
 
@@ -181,6 +224,11 @@ export const PoseViewer: React.FC<PoseViewerProps> = ({
             <div className="text-red-600 dark:text-red-400 text-sm font-medium mb-2">
               {error}
             </div>
+            {src && (
+              <div className="text-red-500 dark:text-red-400 text-xs mb-2">
+                Source: {src.substring(0, 100)}...
+              </div>
+            )}
             <button
               onClick={loadPoseViewerElement}
               className="px-3 py-1 text-sm text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-800 rounded hover:bg-red-200 dark:hover:bg-red-700 transition-colors"
@@ -209,8 +257,11 @@ export const PoseViewer: React.FC<PoseViewerProps> = ({
   }
 
   return (
-    <div className={`pose-viewer-container ${className}`}>
-      <div className="relative">
+    <div
+      className={`pose-viewer-container ${className}`}
+      style={{ width: "100%", height: "100%" }}
+    >
+      <div className="relative w-full h-full">
         {/* @ts-expect-error Custom element not recognized by TypeScript */}
         <pose-viewer
           ref={poseViewerRef}
@@ -218,7 +269,10 @@ export const PoseViewer: React.FC<PoseViewerProps> = ({
           style={{
             width: "100%",
             height: "100%",
+            maxWidth: "100%",
+            maxHeight: "100%",
             background: background,
+            display: "block",
           }}
           tabIndex={-1}
           onFocusCapture={() => {

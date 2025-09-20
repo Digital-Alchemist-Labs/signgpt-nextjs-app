@@ -23,5 +23,52 @@
     "close": "Close",
     "home": "Home",
     "settings": "Settings"
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Customize your SignGPT experience with these settings.",
+    "appearance": {
+      "title": "Appearance",
+      "theme": "Theme",
+      "themeDescription": "Choose your preferred color scheme",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "languages": {
+      "title": "Languages",
+      "interface": "Interface Language",
+      "interfaceDescription": "Language for the app interface",
+      "signLanguage": "Sign Language",
+      "signLanguageDescription": "Primary sign language for translation",
+      "spokenLanguage": "Spoken Language",
+      "spokenLanguageDescription": "Target spoken language for translation"
+    },
+    "video": {
+      "title": "Video & Camera",
+      "enableVideo": "Enable Video Input",
+      "enableVideoDescription": "Allow the app to access your camera for sign language detection",
+      "detectSign": "Sign Language Detection",
+      "detectSignDescription": "Automatically detect and analyze sign language gestures"
+    },
+    "visualization": {
+      "title": "Visualization",
+      "drawPose": "Draw Pose Landmarks",
+      "drawPoseDescription": "Show pose detection points on video",
+      "drawSignWriting": "Draw Sign Writing",
+      "drawSignWritingDescription": "Display sign writing notation",
+      "poseViewer": "Pose Viewer Type",
+      "poseViewerDescription": "Choose how pose data is displayed",
+      "poseLandmarks": "Pose Landmarks",
+      "avatar3d": "3D Avatar"
+    },
+    "accessibility": {
+      "title": "Accessibility",
+      "description": "SignGPT is designed with accessibility in mind. Additional accessibility features will be added in future updates."
+    },
+    "footer": {
+      "title": "SignGPT - AI-Powered Sign Language Translation",
+      "autoSave": "Settings are automatically saved"
+    }
   }
 }

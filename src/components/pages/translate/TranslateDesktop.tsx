@@ -13,8 +13,14 @@ import SettingsPanel from "@/components/translate/SettingsPanel";
 export default function TranslateDesktop() {
   const { t } = useTranslation();
   const { settings, updateSetting } = useSettings();
-  const { state, setInputMode, setSourceText, setTranslatedText } =
-    useTranslationState();
+  const {
+    state,
+    setInputMode,
+    setSourceText,
+    setTranslatedText,
+    setSpokenLanguageText,
+    changeTranslation,
+  } = useTranslationState();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleInputModeChange = (mode: "webcam" | "upload" | "text") => {
@@ -23,15 +29,22 @@ export default function TranslateDesktop() {
 
   const handleSourceTextChange = (text: string) => {
     setSourceText(text);
+    setSpokenLanguageText(text);
   };
 
   const handleTranslation = async (text: string) => {
+    console.log("TranslateDesktop - Starting translation with text:", text);
     setIsLoading(true);
     try {
-      // TODO: Implement actual translation logic
-      // This is a placeholder
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setTranslatedText(`Translated: ${text}`);
+      // Use the enhanced translation logic
+      console.log("TranslateDesktop - Setting spoken language text:", text);
+      setSpokenLanguageText(text);
+
+      console.log("TranslateDesktop - Calling changeTranslation...");
+      await changeTranslation();
+
+      console.log("TranslateDesktop - Translation completed successfully");
+      setTranslatedText(text); // Legacy support
     } catch (error) {
       console.error("Translation failed:", error);
     } finally {
@@ -120,7 +133,7 @@ export default function TranslateDesktop() {
 
       {/* Right Panel - Output */}
       <div
-        className="flex-1 flex flex-col space-y-6 animate-slide-in"
+        className="flex-1 flex flex-col space-y-6 animate-slide-in min-h-0"
         style={{ animationDelay: "0.2s" }}
       >
         <h2 className="text-2xl font-semibold text-center">
@@ -128,7 +141,10 @@ export default function TranslateDesktop() {
             Translation Result
           </span>
         </h2>
-        <div className="modern-card p-6 flex-1">
+        <div
+          className="modern-card p-6 flex-1 overflow-y-auto"
+          style={{ minHeight: "450px" }}
+        >
           <TranslationOutput
             text={state.translatedText}
             isLoading={isLoading}

@@ -22,7 +22,7 @@ export default function TranslatePage() {
     flipTranslationDirection,
   } = useTranslationState();
   const [isMobile, setIsMobile] = useState(false);
-  const [showEnhancedUI, setShowEnhancedUI] = useState(true);
+  const [uiMode, setUiMode] = useState<"original" | "enhanced">("enhanced");
 
   useEffect(() => {
     const checkMobile = () => {
@@ -81,7 +81,7 @@ export default function TranslatePage() {
       {/* Language selection header */}
       <div className="flex items-center gap-6 mb-8">
         <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-foreground mb-2">
             {state.spokenToSigned ? "From (Spoken)" : "From (Signed)"}
           </label>
           <EnhancedLanguageSelector
@@ -102,14 +102,14 @@ export default function TranslatePage() {
         <button
           type="button"
           onClick={flipTranslationDirection}
-          className="flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/30 transition-colors mt-7"
+          className="flex items-center justify-center w-12 h-12 bg-primary/10 text-primary rounded-full hover:bg-primary/20 transition-colors mt-7"
           title="Flip translation direction"
         >
           <ArrowLeftRight className="w-5 h-5" />
         </button>
 
         <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-foreground mb-2">
             {state.spokenToSigned ? "To (Signed)" : "To (Spoken)"}
           </label>
           <EnhancedLanguageSelector
@@ -131,7 +131,7 @@ export default function TranslatePage() {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         {/* Input side */}
         <div className="space-y-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+          <h2 className="text-xl font-semibold text-foreground">
             {state.spokenToSigned ? "Enter Text" : "Sign Language Input"}
           </h2>
 
@@ -150,7 +150,7 @@ export default function TranslatePage() {
 
         {/* Output side */}
         <div className="space-y-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+          <h2 className="text-xl font-semibold text-foreground">
             {state.spokenToSigned
               ? "Sign Language Translation"
               : "Text Translation"}
@@ -159,8 +159,8 @@ export default function TranslatePage() {
           {state.spokenToSigned ? (
             <EnhancedTranslationOutput />
           ) : (
-            <div className="p-8 border border-gray-300 dark:border-gray-600 rounded-lg">
-              <p className="text-gray-500 dark:text-gray-400 text-center">
+            <div className="p-8 border border-border rounded-lg">
+              <p className="text-muted-foreground text-center">
                 Translation will appear here...
               </p>
             </div>
@@ -209,7 +209,7 @@ export default function TranslatePage() {
           <button
             type="button"
             onClick={flipTranslationDirection}
-            className="p-2 bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/30 transition-colors"
+            className="p-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors"
           >
             <ArrowLeftRight className="w-4 h-4" />
           </button>
@@ -269,23 +269,34 @@ export default function TranslatePage() {
     </div>
   );
 
-  // Toggle between enhanced and original UI
-  const toggleUI = () => setShowEnhancedUI(!showEnhancedUI);
-
   return (
     <div className="flex-1 flex flex-col">
-      {/* UI Toggle (development only) */}
-      <div className="p-2 bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      {/* Mode Toggle Tabs */}
+      <div className="flex border-b border-border bg-background">
         <button
-          onClick={toggleUI}
-          className="px-3 py-1 text-xs bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-900/30 transition-colors"
+          onClick={() => setUiMode("original")}
+          className={`flex-1 py-3 px-6 text-sm font-medium transition-colors ${
+            uiMode === "original"
+              ? "text-primary border-b-2 border-primary bg-primary/10"
+              : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+          }`}
         >
-          {showEnhancedUI ? "Switch to Original" : "Switch to Enhanced"}
+          Original
+        </button>
+        <button
+          onClick={() => setUiMode("enhanced")}
+          className={`flex-1 py-3 px-6 text-sm font-medium transition-colors ${
+            uiMode === "enhanced"
+              ? "text-primary border-b-2 border-primary bg-primary/10"
+              : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+          }`}
+        >
+          Enhanced
         </button>
       </div>
 
       {/* Main content */}
-      {showEnhancedUI ? (
+      {uiMode === "enhanced" ? (
         isMobile ? (
           <EnhancedMobileUI />
         ) : (
