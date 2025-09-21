@@ -135,6 +135,10 @@ export const VideoPoseProcessor: React.FC<VideoPoseProcessorProps> = ({
               : "bg-blue-500 hover:bg-blue-600 text-white"
           }`}
           disabled={state.isProcessing}
+          data-sign-text={isRecording ? "stop camera" : "start camera"}
+          data-sign-category="button"
+          data-sign-description="Toggle video camera for pose processing"
+          aria-label={isRecording ? "Stop camera" : "Start camera"}
         >
           {isRecording ? "Stop Camera" : "Start Camera"}
         </button>
@@ -143,6 +147,10 @@ export const VideoPoseProcessor: React.FC<VideoPoseProcessorProps> = ({
           onClick={() => fileInputRef.current?.click()}
           className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
           disabled={state.isProcessing}
+          data-sign-text="load video"
+          data-sign-category="button"
+          data-sign-description="Load video file for pose processing"
+          aria-label="Load video file"
         >
           Load Video File
         </button>
@@ -151,6 +159,10 @@ export const VideoPoseProcessor: React.FC<VideoPoseProcessorProps> = ({
           onClick={processCurrentFrame}
           className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
           disabled={state.isProcessing || !videoRef.current}
+          data-sign-text="process frame"
+          data-sign-category="button"
+          data-sign-description="Process current video frame for pose detection"
+          aria-label="Process frame"
         >
           Process Frame
         </button>
@@ -158,6 +170,10 @@ export const VideoPoseProcessor: React.FC<VideoPoseProcessorProps> = ({
         <button
           onClick={clearPose}
           className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+          data-sign-text="clear"
+          data-sign-category="button"
+          data-sign-description="Clear pose detection results"
+          aria-label="Clear pose"
         >
           Clear Pose
         </button>
@@ -169,6 +185,10 @@ export const VideoPoseProcessor: React.FC<VideoPoseProcessorProps> = ({
         accept="video/*"
         onChange={handleFileChange}
         style={{ display: "none" }}
+        data-sign-text="video file input"
+        data-sign-category="input"
+        data-sign-description="Hidden file input for video upload"
+        aria-label="Video file input"
       />
 
       <div className="video-container mb-4">
@@ -185,7 +205,9 @@ export const VideoPoseProcessor: React.FC<VideoPoseProcessorProps> = ({
 
       {showPoseViewer && (
         <div className="pose-viewer-container">
-          <h3 className="text-lg font-semibold mb-2">Pose Estimation</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-2">
+            Pose Estimation
+          </h3>
           <PoseViewer className="w-full h-96" showControls={true} loop={true} />
         </div>
       )}

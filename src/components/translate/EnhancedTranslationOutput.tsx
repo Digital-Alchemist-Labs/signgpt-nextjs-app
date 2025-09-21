@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Download, Share2, Copy, RotateCcw, Settings } from "lucide-react";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { FirebaseAssetsService } from "@/services/FirebaseAssetsService";
+import { signHoverService } from "@/services/SignHoverService";
 import { PoseViewer } from "@/components/pose/PoseViewer";
 
 interface EnhancedTranslationOutputProps {
@@ -457,9 +458,42 @@ export default function EnhancedTranslationOutput({
     setVideoError(null);
 
     try {
-      // Generate video from pose data
-      const videoUrl = await generateVideoFromPose(state.signedLanguagePose);
-      setSignedLanguageVideo(videoUrl);
+      // 1) Use cache if available for the user's current text
+      const cached = signHoverService.getCachedSignVideo(state.translatedText);
+      if (cached) {
+        setSignedLanguageVideo(cached);
+        setIsVideoLoading(false);
+        return;
+      }
+
+      // 2) Try to fetch pre-rendered video from Firebase by sanitized text
+      try {
+        const sanitizedText = (state.translatedText || "")
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, "_");
+        const firebasePath = `sign_videos/${sanitizedText}.mp4`;
+        const firebase = assetsService.current;
+        await firebase.init();
+        const firebaseUrl = await firebase.getFileUri(firebasePath);
+
+        // Validate reachable via HEAD
+        const head = await fetch(firebaseUrl, { method: "HEAD" });
+        if (head.ok) {
+          setSignedLanguageVideo(firebaseUrl);
+          signHoverService.cacheSignVideo(state.translatedText, firebaseUrl);
+          setIsVideoLoading(false);
+          return;
+        }
+      } catch (e) {
+        // Continue to generation fallback
+      }
+
+      // 3) Fallback: generate video from pose parameters
+      const generatedUrl = await generateVideoFromPose(
+        state.signedLanguagePose
+      );
+      setSignedLanguageVideo(generatedUrl);
+      signHoverService.cacheSignVideo(state.translatedText, generatedUrl);
     } catch (error) {
       console.error("Failed to load video:", error);
       setVideoError("Failed to generate sign language video");
@@ -553,12 +587,16 @@ export default function EnhancedTranslationOutput({
           onClick={() => setShowViewerSelector(!showViewerSelector)}
           className="p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
           title="Change viewer"
+          data-sign-text="settings"
+          data-sign-category="button"
+          data-sign-description="Change video viewer type settings"
+          aria-label="Change viewer settings"
         >
           <Settings className="w-4 h-4" />
         </button>
 
         {showViewerSelector && (
-          <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg min-w-[120px] z-20">
+          <div className="absolute right-0 top-full mt-1 bg-background border border-border rounded-lg shadow-lg min-w-[120px] z-20">
             {[
               { type: "pose" as const, label: "Pose" },
               { type: "avatar" as const, label: "Avatar" },
@@ -572,10 +610,10 @@ export default function EnhancedTranslationOutput({
                   setShowViewerSelector(false);
                   loadVideo(); // Reload with new viewer type
                 }}
-                className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                className={`w-full px-3 py-2 text-left text-sm hover:bg-secondary transition-colors ${
                   poseViewerType === type
-                    ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                    : "text-gray-700 dark:text-gray-300"
+                    ? "bg-primary/10 text-primary"
+                    : "text-foreground"
                 } ${type === "pose" ? "rounded-t-lg" : ""} ${
                   type === "human" ? "rounded-b-lg" : ""
                 }`}
@@ -600,8 +638,12 @@ export default function EnhancedTranslationOutput({
             <button
               type="button"
               onClick={copySignedLanguageVideo}
-              className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors shadow-sm"
+              className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-secondary-foreground bg-secondary rounded-lg hover:bg-secondary/80 transition-colors shadow-sm"
               title="Copy video"
+              data-sign-text="copy"
+              data-sign-category="button"
+              data-sign-description="Copy sign language video to clipboard"
+              aria-label="Copy video"
             >
               <Copy className="w-5 h-5" />
               Copy
@@ -610,8 +652,12 @@ export default function EnhancedTranslationOutput({
             <button
               type="button"
               onClick={shareSignedLanguageVideo}
-              className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors shadow-sm"
+              className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-secondary-foreground bg-secondary rounded-lg hover:bg-secondary/80 transition-colors shadow-sm"
               title="Share video"
+              data-sign-text="share"
+              data-sign-category="button"
+              data-sign-description="Share sign language video"
+              aria-label="Share video"
             >
               <Share2 className="w-5 h-5" />
               Share
@@ -620,8 +666,12 @@ export default function EnhancedTranslationOutput({
             <button
               type="button"
               onClick={downloadSignedLanguageVideo}
-              className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors shadow-sm"
+              className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-secondary-foreground bg-secondary rounded-lg hover:bg-secondary/80 transition-colors shadow-sm"
               title="Download video"
+              data-sign-text="download"
+              data-sign-category="button"
+              data-sign-description="Download sign language video"
+              aria-label="Download video"
             >
               <Download className="w-5 h-5" />
               Download
@@ -633,7 +683,7 @@ export default function EnhancedTranslationOutput({
         <button
           type="button"
           onClick={loadVideo}
-          className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/20 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/30 transition-colors shadow-sm"
+          className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors shadow-sm"
           disabled={isVideoLoading}
           title="Regenerate video"
         >
@@ -648,22 +698,30 @@ export default function EnhancedTranslationOutput({
 
   return (
     <div className={`space-y-6 ${className}`}>
-      {/* Video display area - larger size */}
-      <div className="relative w-full h-96 lg:h-[500px] xl:h-[600px] bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg">
+      {/* Video display area - 512x512 square */}
+      <div
+        className="relative bg-muted rounded-xl overflow-hidden shadow-lg"
+        style={{
+          width: "512px",
+          height: "512px",
+          maxWidth: "100%",
+          aspectRatio: "1/1",
+        }}
+      >
         {/* Loading state */}
         {(isVideoLoading || isLoadingPose) && (
           <div
-            className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-900"
+            className="absolute inset-0 flex items-center justify-center bg-background"
             tabIndex={-1}
           >
             <div className="text-center space-y-3">
-              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <div className="text-sm text-muted-foreground">
                 {isLoadingPose
                   ? "Loading pose data from Firebase..."
                   : "Generating sign language video..."}
               </div>
-              <div className="text-xs text-gray-500 dark:text-gray-500">
+              <div className="text-xs text-muted-foreground">
                 {isLoadingPose && poseData
                   ? "Pose data loaded successfully"
                   : `Using ${poseViewerType} viewer`}
@@ -675,17 +733,21 @@ export default function EnhancedTranslationOutput({
         {/* Error state */}
         {videoError && (
           <div
-            className="absolute inset-0 flex items-center justify-center bg-red-50 dark:bg-red-900/20"
+            className="absolute inset-0 flex items-center justify-center bg-destructive/10"
             tabIndex={-1}
           >
             <div className="text-center space-y-2">
-              <div className="text-red-600 dark:text-red-400 text-sm font-medium">
+              <div className="text-destructive text-sm font-medium">
                 {videoError}
               </div>
               <button
                 type="button"
                 onClick={loadVideo}
-                className="px-3 py-1 text-sm text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-800 rounded hover:bg-red-200 dark:hover:bg-red-700 transition-colors"
+                className="px-3 py-1 text-sm text-destructive bg-destructive/20 rounded hover:bg-destructive/30 transition-colors"
+                data-sign-text="try again"
+                data-sign-category="button"
+                data-sign-description="Try to generate video again"
+                aria-label="Try again"
               >
                 Try again
               </button>
@@ -706,10 +768,10 @@ export default function EnhancedTranslationOutput({
                 <div className="text-green-600 dark:text-green-400 font-medium">
                   Video Generated Successfully!
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
+                <div className="text-sm text-muted-foreground">
                   Sign language video created from Firebase pose data
                 </div>
-                <div className="text-xs text-gray-500 dark:text-gray-500 font-mono bg-gray-100 dark:bg-gray-800 p-2 rounded">
+                <div className="text-xs text-muted-foreground font-mono bg-muted p-2 rounded">
                   {state.signedLanguageVideo.replace(
                     "POSE_VIDEO_GENERATED:",
                     ""
@@ -722,7 +784,8 @@ export default function EnhancedTranslationOutput({
         {/* Video element - only show for actual video URLs (blob URLs) */}
         {state.signedLanguageVideo &&
           (state.signedLanguageVideo.startsWith("blob:") ||
-            state.signedLanguageVideo.startsWith("data:video/")) &&
+            state.signedLanguageVideo.startsWith("data:video/") ||
+            state.signedLanguageVideo.startsWith("http")) &&
           !isVideoLoading &&
           !videoError && (
             <>
@@ -768,7 +831,7 @@ export default function EnhancedTranslationOutput({
         {!state.signedLanguagePose && !isVideoLoading && !videoError && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center space-y-2">
-              <div className="text-gray-500 dark:text-gray-400 text-sm">
+              <div className="text-muted-foreground text-sm">
                 Enter text to see sign language translation
               </div>
             </div>
@@ -781,17 +844,7 @@ export default function EnhancedTranslationOutput({
           !isVideoLoading && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-full h-full flex flex-col">
-                <div className="text-center mb-2 p-2 bg-black/50 backdrop-blur-sm">
-                  <div className="text-sm text-white font-medium">
-                    Sign Language Pose Animation
-                  </div>
-                  <div className="text-xs text-gray-300">
-                    Real-time rendering from:{" "}
-                    {state.signedLanguagePose.includes("cloudfunctions.net")
-                      ? "Cloud Function"
-                      : "Firebase Storage"}
-                  </div>
-                </div>
+                {/* Title removed for cleaner interface */}
 
                 {/* Pose Viewer Component */}
                 <div className="flex-1 relative">
@@ -803,13 +856,13 @@ export default function EnhancedTranslationOutput({
                     loop={true}
                   />
 
-                  {/* Overlay controls */}
+                  {/* Overlay controls
                   <div className="absolute top-4 right-4">
                     <div className="flex items-center gap-2 bg-black/70 backdrop-blur-sm rounded-full px-3 py-2">
                       <button
                         onClick={loadVideo}
                         disabled={isVideoLoading}
-                        className="flex items-center gap-2 px-3 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                        className="flex items-center gap-2 px-3 py-1 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
                       >
                         {isVideoLoading ? (
                           <>
@@ -824,7 +877,7 @@ export default function EnhancedTranslationOutput({
                         )}
                       </button>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>
@@ -837,21 +890,19 @@ export default function EnhancedTranslationOutput({
       {/* SignWriting display */}
       {state.signWriting && state.signWriting.length > 0 && (
         <div className="space-y-2">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            SignWriting
-          </h3>
+          <h3 className="text-sm font-medium text-foreground">SignWriting</h3>
           <div className="flex flex-wrap gap-2">
             {state.signWriting.map((sign, index) => (
               <div
                 key={index}
-                className="p-2 bg-gray-100 dark:bg-gray-700 rounded border"
+                className="p-2 bg-muted rounded border"
                 title={sign.description || sign.fsw}
               >
                 <div className="text-2xl font-mono text-center min-w-[40px]">
                   {sign.fsw}
                 </div>
                 {sign.description && (
-                  <div className="text-xs text-gray-500 dark:text-gray-400 text-center mt-1">
+                  <div className="text-xs text-muted-foreground text-center mt-1">
                     {sign.description}
                   </div>
                 )}
@@ -864,33 +915,13 @@ export default function EnhancedTranslationOutput({
       {/* Action buttons */}
       <ActionButtons />
 
-      {/* Debug information */}
-      {state.signedLanguagePose && (
-        <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <div className="text-xs text-gray-600 dark:text-gray-400">
-            <div className="font-medium mb-1">Pose URL:</div>
-            <div className="break-all font-mono">
-              {state.signedLanguagePose}
-            </div>
-            {poseData && (
-              <div className="mt-2">
-                <div className="font-medium">Loaded Pose Data:</div>
-                <div className="text-green-600 dark:text-green-400">
-                  ✓ Successfully loaded from Firebase
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Backdrop for viewer selector */}
-      {showViewerSelector && (
+      {/* {showViewerSelector && (
         <div
           className="fixed inset-0 z-10"
           onClick={() => setShowViewerSelector(false)}
         />
-      )}
+      )} */}
     </div>
   );
 }

@@ -84,6 +84,10 @@ export const DropPoseFile: React.FC<DropPoseFileProps> = ({
           onChange={handleFileInput}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           title="Select .pose file"
+          data-sign-text="upload pose file"
+          data-sign-category="input"
+          data-sign-description="Upload a pose file for sign language animation"
+          aria-label="Upload pose file"
         />
 
         <div className="space-y-4">

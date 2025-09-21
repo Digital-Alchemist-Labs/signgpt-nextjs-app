@@ -15,11 +15,11 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: "Sign Translate",
+  title: "SignGPT",
   description:
-    "Effortless Sign Language Translation with Cutting-Edge Real-Time Models. Translate Sign Language instantly on desktop and mobile.",
+    "AI-Powered Sign Language Translation with Cutting-Edge Real-Time Models. Translate Sign Language instantly with advanced AI technology on desktop and mobile.",
   keywords:
-    "sign language, sign language translation, sign language interpreter, sign language dictionary, sign language translator, sign language app",
+    "SignGPT, AI sign language, sign language translation, sign language interpreter, sign language dictionary, sign language translator, sign language app, AI translation",
 
   authors: [{ name: "Amit Moryossef" }],
   referrer: "origin",
@@ -35,17 +35,17 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   openGraph: {
-    title: "Sign Translate",
+    title: "SignGPT",
     description:
-      "Effortless Sign Language Translation with Cutting-Edge Real-Time Models",
+      "AI-Powered Sign Language Translation with Cutting-Edge Real-Time Models",
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Sign Translate",
+    title: "SignGPT",
     description:
-      "Effortless Sign Language Translation with Cutting-Edge Real-Time Models",
+      "AI-Powered Sign Language Translation with Cutting-Edge Real-Time Models",
   },
 };
 
@@ -60,12 +60,12 @@ export default function RootLayout({
         <meta name="google" content="notranslate" />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="application-name" content="Sign Translate" />
-        <meta name="apple-mobile-web-app-title" content="Sign Translate" />
+        <meta name="application-name" content="SignGPT" />
+        <meta name="apple-mobile-web-app-title" content="SignGPT" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <link
           rel="search"
-          title="Sign Translate"
+          title="SignGPT"
           type="application/opensearchdescription+xml"
           href="/opensearch.xml"
         />

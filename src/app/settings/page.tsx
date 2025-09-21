@@ -3,15 +3,13 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "@/contexts/SettingsContext";
-import { useTranslation as useTranslationState } from "@/contexts/TranslationContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import MainLayout from "@/components/layout/MainLayout";
-import TranslatePage from "@/components/pages/TranslatePage";
+import SettingsPage from "@/components/pages/SettingsPage";
 
-export default function HomePage() {
+export default function Settings() {
   const { i18n } = useTranslation();
   const { settings } = useSettings();
-  const { resetTranslation } = useTranslationState();
   const { resolvedTheme } = useTheme();
 
   useEffect(() => {
@@ -33,14 +31,11 @@ export default function HomePage() {
     if (themeColorMeta) {
       themeColorMeta.setAttribute("content", themeColor);
     }
-
-    // Reset translation state on page load
-    resetTranslation();
-  }, [settings.language, i18n, resolvedTheme, resetTranslation]);
+  }, [settings.language, i18n, resolvedTheme]);
 
   return (
     <MainLayout>
-      <TranslatePage />
+      <SettingsPage />
     </MainLayout>
   );
 }

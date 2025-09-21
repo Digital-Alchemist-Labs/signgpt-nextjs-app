@@ -457,22 +457,26 @@ export default function EnhancedTextInput({
           onBlur={handleBlur}
           placeholder={placeholder}
           maxLength={maxLength}
-          className={`w-full px-4 py-4 pr-16 text-lg border rounded-lg resize-none transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+          className={`w-full px-4 py-4 pr-16 text-lg border rounded-lg resize-none transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary ${
             isOverLimit
-              ? "border-red-500 dark:border-red-400 bg-red-50 dark:bg-red-900/20"
-              : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
-          } text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400`}
+              ? "border-destructive bg-destructive/10"
+              : "border-input bg-background"
+          } text-foreground placeholder-muted-foreground`}
           style={{ minHeight: "80px", maxHeight: "300px" }}
+          data-sign-text="text input"
+          data-sign-category="input"
+          data-sign-description="Text input area for entering text to translate to sign language"
+          aria-label="Enter text to translate to sign language"
         />
 
         {/* Character count */}
         <div
           className={`absolute bottom-2 right-2 text-xs font-medium ${
             isOverLimit
-              ? "text-red-500 dark:text-red-400"
+              ? "text-destructive"
               : isNearLimit
               ? "text-yellow-600 dark:text-yellow-400"
-              : "text-gray-400 dark:text-gray-500"
+              : "text-muted-foreground"
           }`}
         >
           {characterCount}/{maxLength}
@@ -496,10 +500,16 @@ export default function EnhancedTextInput({
               }}
               className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                 isListening
-                  ? "bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/30"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                  ? "bg-destructive/10 text-destructive hover:bg-destructive/20"
+                  : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
               }`}
               disabled={!recognition}
+              data-sign-text={isListening ? "stop" : "speak"}
+              data-sign-category="button"
+              data-sign-description={
+                isListening ? "Stop voice recording" : "Start voice recording"
+              }
+              aria-label={isListening ? "Stop listening" : "Start listening"}
             >
               {isListening ? (
                 <MicOff className="w-4 h-4" />
@@ -522,9 +532,13 @@ export default function EnhancedTextInput({
                 }}
                 className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                   isSpeaking
-                    ? "bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/30"
-                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    ? "bg-primary/10 text-primary hover:bg-primary/20"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                 }`}
+                data-sign-text="play"
+                data-sign-category="button"
+                data-sign-description="Play text as speech"
+                aria-label="Read text aloud"
               >
                 <Volume2 className="w-4 h-4" />
                 {isSpeaking ? "Stop" : "Listen"}
@@ -539,7 +553,11 @@ export default function EnhancedTextInput({
                 copySpokenLanguageText();
                 refocusTextarea();
               }}
-              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-secondary-foreground bg-secondary rounded-lg hover:bg-secondary/80 transition-colors"
+              data-sign-text="copy"
+              data-sign-category="button"
+              data-sign-description="Copy text to clipboard"
+              aria-label="Copy text"
             >
               <Copy className="w-4 h-4" />
               Copy
@@ -550,10 +568,8 @@ export default function EnhancedTextInput({
         {/* Suggestion indicator */}
         {showSuggestions && state.normalizedSpokenLanguageText && (
           <div className="flex items-center gap-2 text-sm">
-            <span className="text-gray-500 dark:text-gray-400">
-              Suggestion available
-            </span>
-            <Sparkles className="w-4 h-4 text-blue-500" />
+            <span className="text-muted-foreground">Suggestion available</span>
+            <Sparkles className="w-4 h-4 text-primary" />
           </div>
         )}
       </div>
@@ -562,14 +578,14 @@ export default function EnhancedTextInput({
       {showSuggestions &&
         state.normalizedSpokenLanguageText &&
         state.normalizedSpokenLanguageText !== state.spokenLanguageText && (
-          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
             <div className="flex items-start gap-3">
-              <Sparkles className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+              <Sparkles className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                <p className="text-sm font-medium text-primary mb-1">
                   Did you mean:
                 </p>
-                <p className="text-sm text-blue-800 dark:text-blue-200 mb-3 break-words">
+                <p className="text-sm text-primary/80 mb-3 break-words">
                   &ldquo;{state.normalizedSpokenLanguageText}&rdquo;
                 </p>
                 <button
@@ -578,7 +594,7 @@ export default function EnhancedTextInput({
                     applySuggestion();
                     refocusTextarea();
                   }}
-                  className="px-3 py-1 text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-800 rounded hover:bg-blue-200 dark:hover:bg-blue-700 transition-colors"
+                  className="px-3 py-1 text-sm font-medium text-primary bg-primary/20 rounded hover:bg-primary/30 transition-colors"
                 >
                   Use suggestion
                 </button>
@@ -589,8 +605,8 @@ export default function EnhancedTextInput({
 
       {/* Listening indicator */}
       {isListening && (
-        <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
-          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+        <div className="flex items-center gap-2 text-sm text-destructive">
+          <div className="w-2 h-2 bg-destructive rounded-full animate-pulse"></div>
           Listening...
         </div>
       )}

@@ -1165,7 +1165,11 @@ export default function EnhancedLanguageSelector({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-4 py-2 text-left bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+        className="w-full flex items-center justify-between px-4 py-2 text-left bg-background border border-input rounded-lg hover:border-input/80 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+        data-sign-text="language selector"
+        data-sign-category="dropdown"
+        data-sign-description={`Select ${type} language - currently ${selectedLanguage.name}`}
+        aria-label={`Select ${type} language`}
       >
         <div className="flex items-center gap-2 min-w-0 flex-1">
           {showFlags && selectedLanguage.flag && (
@@ -1174,97 +1178,119 @@ export default function EnhancedLanguageSelector({
             </span>
           )}
           <div className="min-w-0 flex-1">
-            <div className="font-medium text-gray-900 dark:text-gray-100 truncate">
+            <div className="font-medium text-foreground truncate">
               {selectedLanguage.name}
               {detectedLanguage === value && (
-                <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">
-                  (Detected)
-                </span>
+                <span className="ml-2 text-xs text-primary">(Detected)</span>
               )}
             </div>
             {showNativeNames &&
               selectedLanguage.nativeName &&
               selectedLanguage.nativeName !== selectedLanguage.name && (
-                <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                <div className="text-sm text-muted-foreground truncate">
                   {selectedLanguage.nativeName}
                 </div>
               )}
           </div>
         </div>
         <ChevronDown
-          className={`w-5 h-5 text-gray-400 transition-transform ${
+          className={`w-5 h-5 text-muted-foreground transition-transform ${
             isOpen ? "transform rotate-180" : ""
           }`}
         />
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-96 overflow-hidden">
-          <div className="p-3 border-b border-gray-200 dark:border-gray-700">
+        <div className="absolute z-50 w-full mt-1 bg-background border border-border rounded-lg shadow-lg max-h-96 overflow-hidden">
+          <div className="p-3 border-b border-border">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Search languages..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 text-sm border border-input rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                 autoFocus
+                data-sign-text="search"
+                data-sign-category="input"
+                data-sign-description="Search for languages in the list"
+                aria-label="Search languages"
               />
             </div>
           </div>
 
           <div className="max-h-80 overflow-y-auto">
             {availableLanguages.length > 0 ? (
-              availableLanguages.map((language) => (
-                <button
-                  key={language.code}
-                  type="button"
-                  onClick={() => handleLanguageSelect(language.code)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                    value === language.code
-                      ? "bg-blue-50 dark:bg-blue-900/20"
-                      : ""
-                  }`}
-                >
-                  {showFlags && language.flag && (
-                    <span className="text-lg flex-shrink-0">
-                      {language.flag}
-                    </span>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <div
-                      className={`font-medium truncate ${
-                        value === language.code
-                          ? "text-blue-600 dark:text-blue-400"
-                          : "text-gray-900 dark:text-gray-100"
-                      }`}
-                    >
-                      {language.name}
-                      {detectedLanguage === language.code && (
-                        <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">
-                          (Detected)
-                        </span>
-                      )}
-                      <span className="ml-2 text-xs text-gray-500 dark:text-gray-400 uppercase">
-                        {language.type}
+              availableLanguages.map((language) => {
+                const isDisabled =
+                  language.type === "spoken"
+                    ? language.code !== "en"
+                    : language.code !== "ase" && language.code !== "asl";
+                return (
+                  <button
+                    key={language.code}
+                    type="button"
+                    onClick={() =>
+                      !isDisabled && handleLanguageSelect(language.code)
+                    }
+                    disabled={isDisabled}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
+                      value === language.code ? "bg-primary/10" : ""
+                    } ${
+                      isDisabled
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:bg-secondary"
+                    }`}
+                    data-sign-text={language.name.toLowerCase()}
+                    data-sign-category="dropdown"
+                    data-sign-description={`Select ${language.name} language`}
+                    aria-label={`Select ${language.name}`}
+                  >
+                    {showFlags && language.flag && (
+                      <span className="text-lg flex-shrink-0">
+                        {language.flag}
                       </span>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div
+                        className={`font-medium truncate ${
+                          value === language.code
+                            ? "text-primary"
+                            : "text-foreground"
+                        }`}
+                      >
+                        {language.name}
+                        {detectedLanguage === language.code && (
+                          <span className="ml-2 text-xs text-primary">
+                            (Detected)
+                          </span>
+                        )}
+                        <span className="ml-2 text-xs text-muted-foreground uppercase">
+                          {language.type}
+                        </span>
+                        {isDisabled && (
+                          <span className="ml-2 text-xs text-muted-foreground">
+                            (Disabled)
+                          </span>
+                        )}
+                      </div>
+                      {showNativeNames &&
+                        language.nativeName &&
+                        language.nativeName !== language.name && (
+                          <div className="text-sm text-muted-foreground truncate">
+                            {language.nativeName}
+                          </div>
+                        )}
                     </div>
-                    {showNativeNames &&
-                      language.nativeName &&
-                      language.nativeName !== language.name && (
-                        <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                          {language.nativeName}
-                        </div>
-                      )}
-                  </div>
-                  {value === language.code && (
-                    <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
-                  )}
-                </button>
-              ))
+                    {value === language.code && (
+                      <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
+                    )}
+                  </button>
+                );
+              })
             ) : (
-              <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+              <div className="px-4 py-8 text-center text-muted-foreground">
                 <Globe className="w-8 h-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">No languages found</p>
                 <p className="text-xs mt-1">Try a different search term</p>

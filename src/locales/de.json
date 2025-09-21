@@ -1,7 +1,7 @@
 {
   "translate": {
-    "title": "Sign Translate",
-    "description": "Mühelose Gebärdensprach-Übersetzung mit modernsten Echtzeit-Modellen"
+    "title": "SignGPT",
+    "description": "KI-gestützte Gebärdensprach-Übersetzung mit modernsten Echtzeit-Modellen"
   },
   "landing": {
     "try": "Jetzt ausprobieren",
@@ -25,4 +25,3 @@
     "settings": "Einstellungen"
   }
 }
-

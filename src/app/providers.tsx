@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { TranslationProvider } from "@/contexts/TranslationContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { PoseProvider } from "@/contexts/PoseContext";
+import SignHover from "@/components/ui/SignHover";
 
 interface ProvidersProps {
   children: ReactNode;
@@ -18,7 +19,13 @@ export function Providers({ children }: ProvidersProps) {
       <ThemeProvider>
         <SettingsProvider>
           <PoseProvider>
-            <TranslationProvider>{children}</TranslationProvider>
+            <TranslationProvider>
+              {children}
+              {/* Global Sign Hover overlay mounted once for the whole app */}
+              <SignHover
+                config={{ enabled: true, showDelay: 300, hideDelay: 100 }}
+              />
+            </TranslationProvider>
           </PoseProvider>
         </SettingsProvider>
       </ThemeProvider>

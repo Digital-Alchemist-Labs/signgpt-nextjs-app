@@ -1,2 +1,23 @@
-{"translate":{"title":"Sign Translate","description":"Tradução de língua de sinais sem esforço com modelos em tempo real de ponta"},"landing":{"try":"Experimentar agora","about":{"title":"Sobre"},"contribute":{"title":"Contribuir"}},"common":{"loading":"Carregando...","error":"Ocorreu um erro","retry":"Tentar novamente","cancel":"Cancelar","save":"Salvar","delete":"Excluir","edit":"Editar","close":"Fechar","home":"Início","settings":"Configurações"}}
-
+{
+  "translate": {
+    "title": "SignGPT",
+    "description": "Tradução de língua de sinais com IA usando modelos em tempo real de ponta"
+  },
+  "landing": {
+    "try": "Experimentar agora",
+    "about": { "title": "Sobre" },
+    "contribute": { "title": "Contribuir" }
+  },
+  "common": {
+    "loading": "Carregando...",
+    "error": "Ocorreu um erro",
+    "retry": "Tentar novamente",
+    "cancel": "Cancelar",
+    "save": "Salvar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "close": "Fechar",
+    "home": "Início",
+    "settings": "Configurações"
+  }
+}
