@@ -72,7 +72,7 @@ export default function TextInput({
       </div>
 
       <div className="flex justify-between items-center">
-        <p className="text-sm text-muted-foreground bg-secondary/30 px-3 py-1 rounded-lg">
+        <p className="text-sm text-muted-foreground output-container px-3 py-1 rounded-lg">
           💡 Press{" "}
           <kbd className="px-2 py-0.5 bg-muted rounded text-xs">Cmd+Enter</kbd>{" "}
           or{" "}

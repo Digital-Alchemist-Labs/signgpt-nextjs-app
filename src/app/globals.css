@@ -1,51 +1,132 @@
 @import "tailwindcss";
 
 :root {
+  /* Light mode colors */
   --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
+  --foreground: 222 84% 5%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+
+  /* Output container specific - slightly darker for better definition */
+  --output-container: 210 40% 94%;
   --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
-  --primary: 221.2 83.2% 53.3%;
+  --popover-foreground: 222 84% 5%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 84% 5%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --primary: 221 83% 53%;
   --primary-foreground: 210 40% 98%;
   --secondary: 210 40% 96%;
-  --secondary-foreground: 222.2 84% 4.9%;
-  --muted: 210 40% 96%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 210 40% 96%;
-  --accent-foreground: 222.2 84% 4.9%;
-  --destructive: 0 84.2% 60.2%;
+  --secondary-foreground: 222 84% 5%;
+  --accent: 33 100% 52%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84% 60%;
   --destructive-foreground: 210 40% 98%;
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 221.2 83.2% 53.3%;
+  --ring: 221 83% 53%;
   --radius: 0.5rem;
+
+  /* Enhanced semantic colors */
+  --success: 142 71% 45%;
+  --success-foreground: 0 0% 100%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 100%;
+  --error: 0 72% 51%;
+  --error-foreground: 0 0% 100%;
+
+  /* Surface colors */
+  --surface-primary: 0 0% 100%;
+  --surface-secondary: 210 40% 98%;
+  --surface-tertiary: 210 40% 96%;
+  --surface-inverse: 222 84% 5%;
+
+  /* Background variations */
+  --background-primary: 0 0% 100%;
+  --background-secondary: 210 40% 98%;
+  --background-tertiary: 210 40% 96%;
+
+  /* Border variations */
+  --border-primary: 214 32% 91%;
+  --border-secondary: 220 13% 91%;
+  --border-tertiary: 215 28% 86%;
+  --border-focus: 221 83% 53%;
+
+  /* Text colors */
+  --text-primary: 222 84% 5%;
+  --text-secondary: 215 16% 47%;
+  --text-tertiary: 215 20% 65%;
+  --text-inverse: 0 0% 100%;
+
+  /* Shadow colors */
+  --shadow-sm: 220 43% 11% / 0.1;
+  --shadow-md: 220 43% 11% / 0.15;
+  --shadow-lg: 220 43% 11% / 0.2;
 }
 
 .dark {
-  --background: 222.2 84% 4.9%;
+  /* Dark mode colors */
+  --background: 222 84% 5%;
   --foreground: 210 40% 98%;
-  --card: 222.2 84% 4.9%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222.2 84% 4.9%;
+  --muted: 217 33% 17%;
+  --muted-foreground: 215 20% 65%;
+  --popover: 222 84% 5%;
   --popover-foreground: 210 40% 98%;
-  --primary: 217.2 91.2% 59.8%;
-  --primary-foreground: 222.2 84% 4.9%;
-  --secondary: 217.2 32.6% 17.5%;
+  --card: 217 33% 17%;
+  --card-foreground: 210 40% 98%;
+  --border: 217 33% 17%;
+  --input: 217 33% 17%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 222 84% 5%;
+  --secondary: 217 33% 17%;
   --secondary-foreground: 210 40% 98%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 62.8% 30.6%;
+  --accent: 33 100% 52%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 63% 31%;
   --destructive-foreground: 210 40% 98%;
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 224.3 76.3% 94.1%;
+  --ring: 217 91% 60%;
+
+  /* Enhanced semantic colors for dark mode */
+  --success: 142 71% 45%;
+  --success-foreground: 0 0% 100%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 100%;
+  --error: 0 72% 51%;
+  --error-foreground: 0 0% 100%;
+
+  /* Surface colors for dark mode */
+  --surface-primary: 217 33% 17%;
+  --surface-secondary: 215 28% 25%;
+  --surface-tertiary: 215 25% 35%;
+  --surface-inverse: 210 40% 98%;
+
+  /* Background variations for dark mode */
+  --background-primary: 222 84% 5%;
+  --background-secondary: 217 33% 17%;
+  --background-tertiary: 215 28% 25%;
+
+  /* Border variations for dark mode */
+  --border-primary: 217 33% 17%;
+  --border-secondary: 215 28% 25%;
+  --border-tertiary: 215 25% 35%;
+  --border-focus: 217 91% 60%;
+
+  /* Text colors for dark mode */
+  --text-primary: 210 40% 98%;
+  --text-secondary: 215 20% 65%;
+  --text-tertiary: 215 16% 47%;
+  --text-inverse: 222 84% 5%;
+
+  /* Output container specific - for dark mode, use existing muted */
+  --output-container: 217 33% 17%;
+
+  /* Shadow colors for dark mode */
+  --shadow-sm: 0 0% 0% / 0.3;
+  --shadow-md: 0 0% 0% / 0.4;
+  --shadow-lg: 0 0% 0% / 0.5;
 }
 
 @theme inline {
+  /* Core theme colors */
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
@@ -65,6 +146,39 @@
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
+
+  /* Enhanced semantic colors */
+  --color-success: hsl(var(--success));
+  --color-success-foreground: hsl(var(--success-foreground));
+  --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+  --color-error: hsl(var(--error));
+  --color-error-foreground: hsl(var(--error-foreground));
+
+  /* Surface colors */
+  --color-surface-primary: hsl(var(--surface-primary));
+  --color-surface-secondary: hsl(var(--surface-secondary));
+  --color-surface-tertiary: hsl(var(--surface-tertiary));
+  --color-surface-inverse: hsl(var(--surface-inverse));
+
+  /* Background variations */
+  --color-background-primary: hsl(var(--background-primary));
+  --color-background-secondary: hsl(var(--background-secondary));
+  --color-background-tertiary: hsl(var(--background-tertiary));
+
+  /* Border variations */
+  --color-border-primary: hsl(var(--border-primary));
+  --color-border-secondary: hsl(var(--border-secondary));
+  --color-border-tertiary: hsl(var(--border-tertiary));
+  --color-border-focus: hsl(var(--border-focus));
+
+  /* Text colors */
+  --color-text-primary: hsl(var(--text-primary));
+  --color-text-secondary: hsl(var(--text-secondary));
+  --color-text-tertiary: hsl(var(--text-tertiary));
+  --color-text-inverse: hsl(var(--text-inverse));
+
+  /* Typography */
   --font-sans: var(--font-inter);
 }
 
@@ -89,6 +203,11 @@ body {
   src: url("/assets/fonts/signwriting/SuttonSignWriting.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
+}
+
+/* Output container styles */
+.output-container {
+  background: hsl(var(--output-container));
 }
 
 /* Custom scrollbar styles */

@@ -705,7 +705,7 @@ export default function EnhancedTranslationOutput({
     <div className={`space-y-6 ${className}`}>
       {/* Video display area - 512x512 square */}
       <div
-        className="relative bg-muted rounded-xl overflow-hidden shadow-lg"
+        className="relative output-container rounded-xl overflow-hidden shadow-lg"
         style={{
           width: "512px",
           height: "512px",
@@ -776,7 +776,7 @@ export default function EnhancedTranslationOutput({
                 <div className="text-sm text-muted-foreground">
                   Sign language video created from Firebase pose data
                 </div>
-                <div className="text-xs text-muted-foreground font-mono bg-muted p-2 rounded">
+                <div className="text-xs text-muted-foreground font-mono output-container p-2 rounded">
                   {state.signedLanguageVideo.replace(
                     "POSE_VIDEO_GENERATED:",
                     ""
@@ -900,7 +900,7 @@ export default function EnhancedTranslationOutput({
             {state.signWriting.map((sign, index) => (
               <div
                 key={index}
-                className="p-2 bg-muted rounded border"
+                className="p-2 output-container rounded border"
                 title={sign.description || sign.fsw}
               >
                 <div className="text-2xl font-mono text-center min-w-[40px]">

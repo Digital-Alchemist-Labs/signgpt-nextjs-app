@@ -274,7 +274,7 @@ export default function ChatPage() {
                   className={`max-w-[80%] rounded-lg p-4 ${
                     message.role === "user"
                       ? "bg-primary text-primary-foreground ml-4"
-                      : "bg-muted text-foreground mr-4"
+                      : "output-container text-foreground mr-4"
                   }`}
                 >
                   <div className="whitespace-pre-wrap break-words">
@@ -289,7 +289,7 @@ export default function ChatPage() {
 
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-muted text-foreground rounded-lg p-4 mr-4">
+                <div className="output-container text-foreground rounded-lg p-4 mr-4">
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
                     <span>SignGPT is thinking...</span>
@@ -415,7 +415,7 @@ function SignLanguageDisplay({ text }: { text: string }) {
 
       {/* Sign Language Display */}
       <div
-        className="relative bg-muted rounded-xl overflow-hidden shadow-lg"
+        className="relative output-container rounded-xl overflow-hidden shadow-lg"
         style={{
           width: "100%",
           height: "300px",

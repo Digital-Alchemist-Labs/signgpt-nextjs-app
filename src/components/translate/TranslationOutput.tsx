@@ -93,7 +93,7 @@ export default function TranslationOutput({
       <div className="space-y-3">
         {/* <h4 className="text-lg font-medium">Sign Language Video</h4> */}
         <div
-          className="w-full max-w-full bg-muted rounded-lg overflow-hidden border border-input relative"
+          className="w-full max-w-full output-container rounded-lg overflow-hidden border border-input relative"
           style={{
             width: "512px",
             height: "512px",
@@ -135,7 +135,7 @@ export default function TranslationOutput({
           <h4 className="text-sm font-medium text-muted-foreground">
             Original Text
           </h4>
-          <div className="p-3 bg-secondary/30 rounded-md border">
+          <div className="p-3 output-container rounded-md border">
             <div className="text-sm text-foreground whitespace-pre-wrap">
               {text}
             </div>

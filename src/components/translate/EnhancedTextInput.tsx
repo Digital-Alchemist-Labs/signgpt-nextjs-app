@@ -135,20 +135,20 @@ export default function EnhancedTextInput({
         }
 
         if (finalTranscript) {
-          const currentText = localText;
-          const newText =
-            currentText + (currentText ? " " : "") + finalTranscript;
-          setLocalText(newText);
-          // debounce push to global state
-          if (textDebounceRef.current) clearTimeout(textDebounceRef.current);
-          textDebounceRef.current = setTimeout(() => {
-            setSpokenLanguageText(newText);
-          }, 300);
-          if (suggestDebounceRef.current)
-            clearTimeout(suggestDebounceRef.current);
-          suggestDebounceRef.current = setTimeout(() => {
-            suggestAlternativeText();
-          }, 1000);
+          setLocalText((prevText) => {
+            const newText = prevText + (prevText ? " " : "") + finalTranscript;
+            // debounce push to global state
+            if (textDebounceRef.current) clearTimeout(textDebounceRef.current);
+            textDebounceRef.current = setTimeout(() => {
+              setSpokenLanguageText(newText);
+            }, 300);
+            if (suggestDebounceRef.current)
+              clearTimeout(suggestDebounceRef.current);
+            suggestDebounceRef.current = setTimeout(() => {
+              suggestAlternativeText();
+            }, 1000);
+            return newText;
+          });
         }
       };
 
@@ -166,6 +166,13 @@ export default function EnhancedTextInput({
     }
 
     return () => {
+      // Cleanup will be handled by separate useEffect
+    };
+  }, [setSpokenLanguageText, state.spokenLanguage, suggestAlternativeText]);
+
+  // Cleanup effect for speech recognition and synthesis
+  useEffect(() => {
+    return () => {
       if (recognition) {
         recognition.stop();
       }
@@ -173,15 +180,7 @@ export default function EnhancedTextInput({
         speechSynthesis.cancel();
       }
     };
-  }, [
-    setSpokenLanguageText,
-    state.spokenLanguageText,
-    state.spokenLanguage,
-    localText,
-    recognition,
-    speechSynthesis,
-    suggestAlternativeText,
-  ]);
+  }, [recognition, speechSynthesis]);
 
   // Update recognition language when spoken language changes
   useEffect(() => {
@@ -250,7 +249,7 @@ export default function EnhancedTextInput({
     ) {
       setLocalText(global);
     }
-  }, [state.spokenLanguageText]);
+  }, [state.spokenLanguageText, localText]);
 
   const handleKeyDown = useCallback(() => {
     isTypingRef.current = true;
