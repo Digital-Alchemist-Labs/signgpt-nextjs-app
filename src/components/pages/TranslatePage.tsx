@@ -10,6 +10,7 @@ import EnhancedLanguageSelector from "@/components/ui/EnhancedLanguageSelector";
 import EnhancedTextInput from "@/components/translate/EnhancedTextInput";
 import EnhancedTranslationOutput from "@/components/translate/EnhancedTranslationOutput";
 import DropPoseFile from "@/components/pose/DropPoseFile";
+import SignHoverTest from "@/components/ui/SignHoverTest";
 import { ArrowLeftRight } from "lucide-react";
 
 export default function TranslatePage() {
@@ -214,10 +215,10 @@ export default function TranslatePage() {
             type="button"
             onClick={flipTranslationDirection}
             className="p-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors"
-            data-sign-text="전환"
+            data-sign-text="switch"
             data-sign-category="button"
-            data-sign-description="번역 방향을 바꾸는 버튼입니다"
-            aria-label="번역 방향 전환"
+            data-sign-description="switch button"
+            aria-label="switch language button"
           >
             <ArrowLeftRight className="w-4 h-4" />
           </button>
@@ -322,6 +323,13 @@ export default function TranslatePage() {
         <TranslateMobile />
       ) : (
         <TranslateDesktop />
+      )}
+
+      {/* SignHover Test Component - Remove this in production */}
+      {process.env.NODE_ENV === "development" && (
+        <div className="mt-8">
+          <SignHoverTest />
+        </div>
       )}
     </div>
   );

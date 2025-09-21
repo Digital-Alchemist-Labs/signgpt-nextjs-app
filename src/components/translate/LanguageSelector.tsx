@@ -72,6 +72,10 @@ export default function LanguageSelector() {
             <button
               onClick={() => setIsSourceOpen(!isSourceOpen)}
               className="w-full flex items-center justify-between px-3 py-2 border border-input bg-background rounded-md hover:bg-accent transition-colors"
+              data-sign-text="source language"
+              data-sign-category="dropdown"
+              data-sign-description="Select source spoken language for translation"
+              aria-label="Select source language"
             >
               <div className="flex items-center space-x-2">
                 <span className="text-lg">{currentSourceLanguage.flag}</span>
@@ -100,6 +104,10 @@ export default function LanguageSelector() {
                           ? "opacity-50 cursor-not-allowed"
                           : "hover:bg-accent"
                       }`}
+                      data-sign-text={language.name.toLowerCase()}
+                      data-sign-category="dropdown"
+                      data-sign-description={`Select ${language.name} as source language`}
+                      aria-label={`Select ${language.name}`}
                     >
                       <span className="text-lg">{language.flag}</span>
                       <span>{language.name}</span>
@@ -125,6 +133,10 @@ export default function LanguageSelector() {
             <button
               onClick={() => setIsTargetOpen(!isTargetOpen)}
               className="w-full flex items-center justify-between px-3 py-2 border border-input bg-background rounded-md hover:bg-accent transition-colors"
+              data-sign-text="target language"
+              data-sign-category="dropdown"
+              data-sign-description="Select target sign language for translation"
+              aria-label="Select target sign language"
             >
               <div className="flex items-center space-x-2">
                 <span className="text-lg">{currentTargetLanguage.flag}</span>
@@ -153,6 +165,10 @@ export default function LanguageSelector() {
                           ? "opacity-50 cursor-not-allowed"
                           : "hover:bg-accent"
                       }`}
+                      data-sign-text={language.name.toLowerCase()}
+                      data-sign-category="dropdown"
+                      data-sign-description={`Select ${language.name} as target sign language`}
+                      aria-label={`Select ${language.name}`}
                     >
                       <span className="text-lg">{language.flag}</span>
                       <span>{language.name}</span>

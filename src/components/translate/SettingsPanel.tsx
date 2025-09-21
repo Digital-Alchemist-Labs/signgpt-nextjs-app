@@ -16,6 +16,10 @@ export default function SettingsPanel() {
         onClick={() => setIsOpen(true)}
         className="p-2 rounded-md hover:bg-accent transition-colors"
         title="Settings"
+        data-sign-text="settings"
+        data-sign-category="button"
+        data-sign-description="Open translation settings panel"
+        aria-label="Open settings"
       >
         <Settings className="h-5 w-5" />
       </button>
@@ -30,6 +34,10 @@ export default function SettingsPanel() {
               <button
                 onClick={() => setIsOpen(false)}
                 className="p-1 rounded-md hover:bg-accent transition-colors"
+                data-sign-text="close"
+                data-sign-category="button"
+                data-sign-description="Close settings panel"
+                aria-label="Close settings"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -50,6 +58,10 @@ export default function SettingsPanel() {
                         updateSetting("receiveVideo", e.target.checked)
                       }
                       className="rounded border-input"
+                      data-sign-text="receive video"
+                      data-sign-category="input"
+                      data-sign-description="Toggle receiving video feature"
+                      aria-label="Toggle receive video"
                     />
                   </label>
 
@@ -62,6 +74,10 @@ export default function SettingsPanel() {
                         updateSetting("detectSign", e.target.checked)
                       }
                       className="rounded border-input"
+                      data-sign-text="detect sign"
+                      data-sign-category="input"
+                      data-sign-description="Toggle sign language detection"
+                      aria-label="Toggle sign detection"
                     />
                   </label>
 
@@ -74,6 +90,10 @@ export default function SettingsPanel() {
                         updateSetting("drawSignWriting", e.target.checked)
                       }
                       className="rounded border-input"
+                      data-sign-text="draw sign writing"
+                      data-sign-category="input"
+                      data-sign-description="Toggle sign writing visualization"
+                      aria-label="Toggle draw sign writing"
                     />
                   </label>
 
@@ -86,6 +106,10 @@ export default function SettingsPanel() {
                         updateSetting("drawPose", e.target.checked)
                       }
                       className="rounded border-input"
+                      data-sign-text="draw pose"
+                      data-sign-category="input"
+                      data-sign-description="Toggle pose visualization"
+                      aria-label="Toggle draw pose"
                     />
                   </label>
                 </div>
@@ -106,6 +130,10 @@ export default function SettingsPanel() {
                       )
                     }
                     className="w-full px-3 py-2 border border-input bg-background rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                    data-sign-text="viewer type"
+                    data-sign-category="dropdown"
+                    data-sign-description="Select pose viewer type"
+                    aria-label="Select viewer type"
                   >
                     <option value="pose">Pose</option>
                     <option value="avatar">Avatar</option>
@@ -123,6 +151,10 @@ export default function SettingsPanel() {
                     value={settings.language}
                     onChange={(e) => updateSetting("language", e.target.value)}
                     className="w-full px-3 py-2 border border-input bg-background rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                    data-sign-text="interface language"
+                    data-sign-category="dropdown"
+                    data-sign-description="Select interface language"
+                    aria-label="Select interface language"
                   >
                     <option value="en">English</option>
                     <option value="de">Deutsch</option>
@@ -145,6 +177,10 @@ export default function SettingsPanel() {
               <button
                 onClick={() => setIsOpen(false)}
                 className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                data-sign-text="close"
+                data-sign-category="button"
+                data-sign-description="Close settings panel"
+                aria-label="Close settings panel"
               >
                 Close
               </button>

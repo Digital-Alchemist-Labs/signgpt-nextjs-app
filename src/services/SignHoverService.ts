@@ -1,264 +1,260 @@
 import { SignHoverData } from "@/types/sign-hover";
 
-// 기본 수어 데이터 매핑
+// Default sign language data mappings
 const DEFAULT_SIGN_MAPPINGS: Record<string, Partial<SignHoverData>> = {
-  // 기본 UI 요소
+  // Basic UI elements
   button: {
     signImageUrl: "/assets/signs/button.png",
-    description: "버튼을 나타내는 수어입니다.",
+    description: "Sign language for button.",
     category: "button",
   },
   click: {
     signImageUrl: "/assets/signs/click.png",
-    description: "클릭 동작을 나타내는 수어입니다.",
+    description: "Sign language for click action.",
     category: "button",
   },
   submit: {
     signImageUrl: "/assets/signs/submit.png",
-    description: "제출을 나타내는 수어입니다.",
+    description: "Sign language for submit.",
     category: "button",
   },
   cancel: {
     signImageUrl: "/assets/signs/cancel.png",
-    description: "취소를 나타내는 수어입니다.",
+    description: "Sign language for cancel.",
     category: "button",
   },
   save: {
     signImageUrl: "/assets/signs/save.png",
-    description: "저장을 나타내는 수어입니다.",
+    description: "Sign language for save.",
     category: "button",
   },
 
-  // 네비게이션 요소
+  // Navigation elements
   home: {
     signImageUrl: "/assets/signs/home.png",
-    description: "홈/집을 나타내는 수어입니다.",
+    description: "Sign language for home.",
     category: "navigation",
   },
   settings: {
     signImageUrl: "/assets/signs/settings.png",
-    description: "설정을 나타내는 수어입니다.",
+    description: "Sign language for settings.",
     category: "navigation",
   },
   menu: {
     signImageUrl: "/assets/signs/menu.png",
-    description: "메뉴를 나타내는 수어입니다.",
+    description: "Sign language for menu.",
     category: "navigation",
   },
   back: {
     signImageUrl: "/assets/signs/back.png",
-    description: "뒤로가기를 나타내는 수어입니다.",
+    description: "Sign language for back/previous.",
     category: "navigation",
   },
   next: {
     signImageUrl: "/assets/signs/next.png",
-    description: "다음을 나타내는 수어입니다.",
+    description: "Sign language for next.",
     category: "navigation",
   },
 
-  // 입력 요소
+  // Input elements
   input: {
     signImageUrl: "/assets/signs/input.png",
-    description: "입력을 나타내는 수어입니다.",
+    description: "Sign language for input.",
     category: "input",
   },
   text: {
     signImageUrl: "/assets/signs/text.png",
-    description: "텍스트를 나타내는 수어입니다.",
+    description: "Sign language for text.",
     category: "input",
   },
   search: {
     signImageUrl: "/assets/signs/search.png",
-    description: "검색을 나타내는 수어입니다.",
+    description: "Sign language for search.",
     category: "input",
   },
   select: {
     signImageUrl: "/assets/signs/select.png",
-    description: "선택을 나타내는 수어입니다.",
+    description: "Sign language for select.",
     category: "dropdown",
   },
   choose: {
     signImageUrl: "/assets/signs/choose.png",
-    description: "선택을 나타내는 수어입니다.",
+    description: "Sign language for choose/selection.",
     category: "dropdown",
   },
 
-  // 언어 관련
+  // Language related
   language: {
     signImageUrl: "/assets/signs/language.png",
-    description: "언어를 나타내는 수어입니다.",
+    description: "Sign language for language.",
     category: "dropdown",
   },
   english: {
     signImageUrl: "/assets/signs/english.png",
-    description: "영어를 나타내는 수어입니다.",
+    description: "Sign language for English.",
     category: "dropdown",
   },
   korean: {
     signImageUrl: "/assets/signs/korean.png",
-    description: "한국어를 나타내는 수어입니다.",
+    description: "Sign language for Korean.",
     category: "dropdown",
   },
   translate: {
     signImageUrl: "/assets/signs/translate.png",
-    description: "번역을 나타내는 수어입니다.",
+    description: "Sign language for translate.",
     category: "general",
   },
 
-  // 일반적인 동작
+  // General actions
   open: {
     signImageUrl: "/assets/signs/open.png",
-    description: "열기를 나타내는 수어입니다.",
+    description: "Sign language for open.",
     category: "general",
   },
   close: {
     signImageUrl: "/assets/signs/close.png",
-    description: "닫기를 나타내는 수어입니다.",
+    description: "Sign language for close.",
     category: "general",
   },
   start: {
     signImageUrl: "/assets/signs/start.png",
-    description: "시작을 나타내는 수어입니다.",
+    description: "Sign language for start.",
     category: "button",
   },
   stop: {
     signImageUrl: "/assets/signs/stop.png",
-    description: "정지를 나타내는 수어입니다.",
+    description: "Sign language for stop.",
     category: "button",
   },
   help: {
     signImageUrl: "/assets/signs/help.png",
-    description: "도움을 나타내는 수어입니다.",
+    description: "Sign language for help.",
     category: "general",
   },
   about: {
     signImageUrl: "/assets/signs/about.png",
-    description: "정보/소개를 나타내는 수어입니다.",
+    description: "Sign language for about/information.",
     category: "general",
   },
 
-  // SignGPT 특화 용어
+  // SignGPT specific terms
   signgpt: {
     signImageUrl: "/assets/signs/signgpt.png",
-    description: "SignGPT 애플리케이션을 나타내는 수어입니다.",
+    description: "Sign language for SignGPT application.",
     category: "general",
   },
   pose: {
     signImageUrl: "/assets/signs/pose.png",
-    description: "자세/포즈를 나타내는 수어입니다.",
+    description: "Sign language for pose/posture.",
     category: "general",
   },
   camera: {
     signImageUrl: "/assets/signs/camera.png",
-    description: "카메라를 나타내는 수어입니다.",
+    description: "Sign language for camera.",
     category: "general",
   },
   video: {
     signImageUrl: "/assets/signs/video.png",
-    description: "비디오를 나타내는 수어입니다.",
+    description: "Sign language for video.",
     category: "general",
   },
   upload: {
     signImageUrl: "/assets/signs/upload.png",
-    description: "업로드를 나타내는 수어입니다.",
+    description: "Sign language for upload.",
     category: "button",
   },
   download: {
     signImageUrl: "/assets/signs/download.png",
-    description: "다운로드를 나타내는 수어입니다.",
+    description: "Sign language for download.",
     category: "button",
   },
 };
 
-// 한국어 매핑
-const KOREAN_SIGN_MAPPINGS: Record<string, Partial<SignHoverData>> = {
-  버튼: DEFAULT_SIGN_MAPPINGS["button"],
-  클릭: DEFAULT_SIGN_MAPPINGS["click"],
-  제출: DEFAULT_SIGN_MAPPINGS["submit"],
-  취소: DEFAULT_SIGN_MAPPINGS["cancel"],
-  저장: DEFAULT_SIGN_MAPPINGS["save"],
-  홈: DEFAULT_SIGN_MAPPINGS["home"],
-  설정: DEFAULT_SIGN_MAPPINGS["settings"],
-  메뉴: DEFAULT_SIGN_MAPPINGS["menu"],
-  뒤로: DEFAULT_SIGN_MAPPINGS["back"],
-  다음: DEFAULT_SIGN_MAPPINGS["next"],
-  입력: DEFAULT_SIGN_MAPPINGS["input"],
-  텍스트: DEFAULT_SIGN_MAPPINGS["text"],
-  검색: DEFAULT_SIGN_MAPPINGS["search"],
-  선택: DEFAULT_SIGN_MAPPINGS["select"],
-  언어: DEFAULT_SIGN_MAPPINGS["language"],
-  영어: DEFAULT_SIGN_MAPPINGS["english"],
-  한국어: DEFAULT_SIGN_MAPPINGS["korean"],
-  번역: DEFAULT_SIGN_MAPPINGS["translate"],
-  열기: DEFAULT_SIGN_MAPPINGS["open"],
-  닫기: DEFAULT_SIGN_MAPPINGS["close"],
-  시작: DEFAULT_SIGN_MAPPINGS["start"],
-  정지: DEFAULT_SIGN_MAPPINGS["stop"],
-  도움: DEFAULT_SIGN_MAPPINGS["help"],
-  정보: DEFAULT_SIGN_MAPPINGS["about"],
-  자세: DEFAULT_SIGN_MAPPINGS["pose"],
-  카메라: DEFAULT_SIGN_MAPPINGS["camera"],
-  비디오: DEFAULT_SIGN_MAPPINGS["video"],
-  업로드: DEFAULT_SIGN_MAPPINGS["upload"],
-  다운로드: DEFAULT_SIGN_MAPPINGS["download"],
+// English mappings (duplicates for Korean words)
+const KOREAN_MAPPINGS: Record<string, string> = {
+  // Korean UI terms mapped to English keys
+  버튼: "button",
+  클릭: "click",
+  제출: "submit",
+  취소: "cancel",
+  저장: "save",
+  홈: "home",
+  설정: "settings",
+  메뉴: "menu",
+  뒤로: "back",
+  다음: "next",
+  입력: "input",
+  텍스트: "text",
+  검색: "search",
+  선택: "select",
+  언어: "language",
+  영어: "english",
+  한국어: "korean",
+  번역: "translate",
+  열기: "open",
+  닫기: "close",
+  시작: "start",
+  정지: "stop",
+  도움: "help",
+  정보: "about",
+  자세: "pose",
+  카메라: "camera",
+  비디오: "video",
+  업로드: "upload",
+  다운로드: "download",
 };
 
 class SignHoverService {
-  private signMappings: Record<string, Partial<SignHoverData>>;
-  private customMappings: Record<string, Partial<SignHoverData>> = {};
-  private videoCache: Map<string, string> = new Map();
-  private cacheExpiry: Map<string, number> = new Map();
-  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5분
+  private readonly videoCache = new Map<string, string>();
+  private readonly cacheExpiry = new Map<string, number>();
+  private readonly customMappings = new Map<string, Partial<SignHoverData>>();
+  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
   constructor() {
-    this.signMappings = { ...DEFAULT_SIGN_MAPPINGS, ...KOREAN_SIGN_MAPPINGS };
+    this.initializeDefaultMappings();
   }
 
   /**
-   * 텍스트에 대한 수어 데이터를 가져옵니다
+   * Get sign language data for text
    */
-  getSignData(text: string): SignHoverData | null {
-    if (!text) return null;
-
+  getSignData(text: string): Partial<SignHoverData> | null {
     const normalizedText = this.normalizeText(text);
 
-    // 정확한 매칭 시도
-    let signData: Partial<SignHoverData> | null =
-      this.signMappings[normalizedText] ||
-      this.customMappings[normalizedText] ||
-      null;
-
-    if (!signData) {
-      // 부분 매칭 시도
-      signData = this.findPartialMatch(normalizedText);
+    // Try exact matching first
+    if (DEFAULT_SIGN_MAPPINGS[normalizedText]) {
+      return DEFAULT_SIGN_MAPPINGS[normalizedText];
     }
 
-    if (!signData) {
-      // 키워드 추출 시도
-      signData = this.findKeywordMatch(normalizedText);
+    // Try custom mappings
+    if (this.customMappings.has(normalizedText)) {
+      return this.customMappings.get(normalizedText)!;
     }
 
-    if (signData) {
-      return {
-        text,
-        ...signData,
-        category: signData.category || "general",
-      };
+    // Try partial matching
+    const partialMatch = this.findPartialMatch(normalizedText);
+    if (partialMatch) {
+      return partialMatch;
+    }
+
+    // Try keyword extraction
+    const keywordMatch = this.findKeywordMatch(normalizedText);
+    if (keywordMatch) {
+      return keywordMatch;
     }
 
     return null;
   }
 
   /**
-   * 커스텀 수어 매핑을 추가합니다
+   * Add custom sign language mapping
    */
   addCustomMapping(text: string, signData: Partial<SignHoverData>): void {
     const normalizedText = this.normalizeText(text);
-    this.customMappings[normalizedText] = signData;
+    this.customMappings.set(normalizedText, signData);
   }
 
   /**
-   * 여러 커스텀 매핑을 한번에 추가합니다
+   * Add multiple custom mappings at once
    */
   addCustomMappings(mappings: Record<string, Partial<SignHoverData>>): void {
     Object.entries(mappings).forEach(([text, signData]) => {
@@ -267,39 +263,43 @@ class SignHoverService {
   }
 
   /**
-   * 텍스트를 정규화합니다
+   * Normalize text for processing
    */
   private normalizeText(text: string): string {
     return text
       .toLowerCase()
       .trim()
-      .replace(/[^\w\s가-힣]/g, "") // 특수문자 제거
-      .replace(/\s+/g, " "); // 여러 공백을 하나로
+      .replace(/[^\w\s가-힣]/g, "") // Remove special characters
+      .replace(/\s+/g, " "); // Replace multiple spaces with single space
   }
 
   /**
-   * 부분 매칭을 시도합니다
+   * Find partial matches
    */
   private findPartialMatch(text: string): Partial<SignHoverData> | null {
     const words = text.split(" ");
 
-    // 각 단어에 대해 매칭 시도
+    // Try matching each word
     for (const word of words) {
-      if (this.signMappings[word] || this.customMappings[word]) {
-        return this.signMappings[word] || this.customMappings[word];
+      if (DEFAULT_SIGN_MAPPINGS[word]) {
+        return DEFAULT_SIGN_MAPPINGS[word];
       }
     }
 
-    // 포함 관계 확인
-    for (const [key, value] of Object.entries(this.signMappings)) {
+    // Try inclusion relationship check
+    for (const [key, value] of Object.entries(DEFAULT_SIGN_MAPPINGS)) {
       if (text.includes(key) || key.includes(text)) {
         return value;
       }
     }
 
-    for (const [key, value] of Object.entries(this.customMappings)) {
-      if (text.includes(key) || key.includes(text)) {
-        return value;
+    // Try Korean mappings
+    for (const word of words) {
+      if (KOREAN_MAPPINGS[word]) {
+        const englishKey = KOREAN_MAPPINGS[word];
+        if (DEFAULT_SIGN_MAPPINGS[englishKey]) {
+          return DEFAULT_SIGN_MAPPINGS[englishKey];
+        }
       }
     }
 
@@ -307,39 +307,39 @@ class SignHoverService {
   }
 
   /**
-   * 키워드 기반 매칭을 시도합니다
+   * Find keyword-based matches
    */
   private findKeywordMatch(text: string): Partial<SignHoverData> | null {
-    // UI 요소 타입 추론
-    if (text.match(/(버튼|button|btn|클릭|click)/i)) {
+    // Infer UI element type
+    if (text.match(/(button|btn|click)/i)) {
       return DEFAULT_SIGN_MAPPINGS["button"];
     }
 
-    if (text.match(/(입력|input|텍스트|text)/i)) {
+    if (text.match(/(input|text)/i)) {
       return DEFAULT_SIGN_MAPPINGS["input"];
     }
 
-    if (text.match(/(선택|select|드롭다운|dropdown|옵션|option)/i)) {
+    if (text.match(/(select|dropdown|option)/i)) {
       return DEFAULT_SIGN_MAPPINGS["select"];
     }
 
-    if (text.match(/(검색|search|찾기|find)/i)) {
+    if (text.match(/(search|find)/i)) {
       return DEFAULT_SIGN_MAPPINGS["search"];
     }
 
-    if (text.match(/(설정|setting|config|환경)/i)) {
+    if (text.match(/(setting|config)/i)) {
       return DEFAULT_SIGN_MAPPINGS["settings"];
     }
 
-    if (text.match(/(메뉴|menu|네비|nav)/i)) {
+    if (text.match(/(menu|nav)/i)) {
       return DEFAULT_SIGN_MAPPINGS["menu"];
     }
 
-    if (text.match(/(언어|language|lang)/i)) {
+    if (text.match(/(language|lang)/i)) {
       return DEFAULT_SIGN_MAPPINGS["language"];
     }
 
-    if (text.match(/(번역|translate|trans)/i)) {
+    if (text.match(/(translate|trans)/i)) {
       return DEFAULT_SIGN_MAPPINGS["translate"];
     }
 
@@ -347,32 +347,37 @@ class SignHoverService {
   }
 
   /**
-   * 모든 매핑 데이터를 가져옵니다
+   * Get all mapping data
    */
   getAllMappings(): Record<string, Partial<SignHoverData>> {
-    return { ...this.signMappings, ...this.customMappings };
+    return { ...DEFAULT_SIGN_MAPPINGS };
   }
 
   /**
-   * 특정 카테고리의 매핑을 가져옵니다
+   * Get mappings for specific category
    */
   getMappingsByCategory(
     category: string
   ): Record<string, Partial<SignHoverData>> {
-    const result: Record<string, Partial<SignHoverData>> = {};
-    const allMappings = this.getAllMappings();
+    const filtered: Record<string, Partial<SignHoverData>> = {};
 
-    Object.entries(allMappings).forEach(([key, value]) => {
+    Object.entries(DEFAULT_SIGN_MAPPINGS).forEach(([key, value]) => {
       if (value.category === category) {
-        result[key] = value;
+        filtered[key] = value;
       }
     });
 
-    return result;
+    Object.entries(this.customMappings).forEach(([key, value]) => {
+      if (value.category === category) {
+        filtered[key] = value;
+      }
+    });
+
+    return filtered;
   }
 
   /**
-   * 수어 영상을 캐시에 저장합니다
+   * Store sign language video in cache
    */
   cacheSignVideo(text: string, videoUrl: string): void {
     const normalizedText = this.normalizeText(text);
@@ -381,27 +386,24 @@ class SignHoverService {
   }
 
   /**
-   * 캐시에서 수어 영상을 가져옵니다
+   * Get sign language video from cache
    */
   getCachedSignVideo(text: string): string | null {
     const normalizedText = this.normalizeText(text);
     const expiry = this.cacheExpiry.get(normalizedText);
 
-    if (expiry && Date.now() < expiry) {
-      return this.videoCache.get(normalizedText) || null;
-    }
-
-    // 캐시가 만료되었으면 제거
-    if (expiry) {
+    // Remove expired cache
+    if (expiry && Date.now() > expiry) {
       this.videoCache.delete(normalizedText);
       this.cacheExpiry.delete(normalizedText);
+      return null;
     }
 
-    return null;
+    return this.videoCache.get(normalizedText) || null;
   }
 
   /**
-   * 캐시를 정리합니다
+   * Clear cache
    */
   clearCache(): void {
     this.videoCache.clear();
@@ -409,12 +411,12 @@ class SignHoverService {
   }
 
   /**
-   * 만료된 캐시를 정리합니다
+   * Clean expired cache entries
    */
-  cleanExpiredCache(): void {
+  private cleanExpiredCache(): void {
     const now = Date.now();
     for (const [key, expiry] of this.cacheExpiry.entries()) {
-      if (now >= expiry) {
+      if (now > expiry) {
         this.videoCache.delete(key);
         this.cacheExpiry.delete(key);
       }
@@ -422,14 +424,14 @@ class SignHoverService {
   }
 
   /**
-   * Enhanced mode와 호환되는 텍스트 정규화 (Enhanced mode approach)
+   * Text normalization compatible with Enhanced mode (Enhanced mode approach)
    */
   sanitizeTextForFirebase(text: string): string {
     return (text || "").toLowerCase().replace(/[^a-z0-9]/g, "_");
   }
 
   /**
-   * Firebase에서 수어 비디오 URL을 생성합니다 (Enhanced mode approach)
+   * Generate sign language video URL from Firebase (Enhanced mode approach)
    */
   getFirebaseVideoPath(text: string): string {
     const sanitizedText = this.sanitizeTextForFirebase(text);
@@ -437,7 +439,7 @@ class SignHoverService {
   }
 
   /**
-   * Firebase에서 수어 포즈 URL을 생성합니다 (Enhanced mode approach)
+   * Generate sign language pose URL from Firebase (Enhanced mode approach)
    */
   getFirebasePosePath(text: string): string {
     const sanitizedText = this.sanitizeTextForFirebase(text);
@@ -445,7 +447,7 @@ class SignHoverService {
   }
 
   /**
-   * 캐시 통계를 반환합니다 (Enhanced mode debugging support)
+   * Return cache statistics (Enhanced mode debugging support)
    */
   getCacheStats(): { size: number; entries: string[] } {
     return {
@@ -455,16 +457,26 @@ class SignHoverService {
   }
 
   /**
-   * Enhanced mode 호환성을 위한 캐시 유효성 검사
+   * Cache validity check for Enhanced mode compatibility
    */
   isCacheValid(text: string): boolean {
     const normalizedText = this.normalizeText(text);
     const expiry = this.cacheExpiry.get(normalizedText);
     return expiry ? Date.now() < expiry : false;
   }
+
+  /**
+   * Initialize default mappings
+   */
+  private initializeDefaultMappings(): void {
+    // Clean expired cache periodically
+    setInterval(() => {
+      this.cleanExpiredCache();
+    }, this.CACHE_DURATION);
+  }
 }
 
-// 싱글톤 인스턴스
+// Singleton instance
 export const signHoverService = new SignHoverService();
 
 export default SignHoverService;

@@ -72,6 +72,10 @@ export default function TranslateDesktop() {
                 ? "btn-gradient shadow-lg transform scale-105"
                 : "text-secondary-foreground hover:bg-secondary/80 hover:scale-102"
             }`}
+            data-sign-text="camera"
+            data-sign-category="button"
+            data-sign-description="Switch to camera input mode"
+            aria-label="Camera mode"
           >
             📹 Camera
           </button>
@@ -82,6 +86,10 @@ export default function TranslateDesktop() {
                 ? "btn-gradient shadow-lg transform scale-105"
                 : "text-secondary-foreground hover:bg-secondary/80 hover:scale-102"
             }`}
+            data-sign-text="upload"
+            data-sign-category="button"
+            data-sign-description="Switch to upload input mode"
+            aria-label="Upload mode"
           >
             📁 Upload
           </button>
@@ -92,6 +100,10 @@ export default function TranslateDesktop() {
                 ? "btn-gradient shadow-lg transform scale-105"
                 : "text-secondary-foreground hover:bg-secondary/80 hover:scale-102"
             }`}
+            data-sign-text="text"
+            data-sign-category="button"
+            data-sign-description="Switch to text input mode"
+            aria-label="Text mode"
           >
             ✍️ Text
           </button>

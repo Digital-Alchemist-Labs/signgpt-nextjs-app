@@ -232,6 +232,10 @@ export const PoseViewer: React.FC<PoseViewerProps> = ({
             <button
               onClick={loadPoseViewerElement}
               className="px-3 py-1 text-sm text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-800 rounded hover:bg-red-200 dark:hover:bg-red-700 transition-colors"
+              data-sign-text="retry"
+              data-sign-category="button"
+              data-sign-description="Retry loading pose viewer element"
+              aria-label="Retry loading pose viewer"
             >
               Retry
             </button>
@@ -302,6 +306,10 @@ export const PoseViewer: React.FC<PoseViewerProps> = ({
                 onClick={handlePlayPause}
                 className="flex items-center justify-center w-8 h-8 text-white hover:text-blue-400 transition-colors"
                 title={isPlaying ? "Pause" : "Play"}
+                data-sign-text={isPlaying ? "pause" : "play"}
+                data-sign-category="button"
+                data-sign-description="Play or pause pose animation"
+                aria-label={isPlaying ? "Pause animation" : "Play animation"}
               >
                 {isPlaying ? (
                   <svg

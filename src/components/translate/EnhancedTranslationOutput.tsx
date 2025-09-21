@@ -856,7 +856,7 @@ export default function EnhancedTranslationOutput({
                     loop={true}
                   />
 
-                  {/* Overlay controls */}
+                  {/* Overlay controls
                   <div className="absolute top-4 right-4">
                     <div className="flex items-center gap-2 bg-black/70 backdrop-blur-sm rounded-full px-3 py-2">
                       <button
@@ -877,7 +877,7 @@ export default function EnhancedTranslationOutput({
                         )}
                       </button>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>
@@ -916,12 +916,12 @@ export default function EnhancedTranslationOutput({
       <ActionButtons />
 
       {/* Backdrop for viewer selector */}
-      {showViewerSelector && (
+      {/* {showViewerSelector && (
         <div
           className="fixed inset-0 z-10"
           onClick={() => setShowViewerSelector(false)}
         />
-      )}
+      )} */}
     </div>
   );
 }

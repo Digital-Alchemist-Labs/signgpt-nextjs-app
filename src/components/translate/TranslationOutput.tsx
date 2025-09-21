@@ -62,6 +62,10 @@ export default function TranslationOutput({
             <button
               onClick={handleCopy}
               className="flex items-center space-x-1 px-3 py-1 text-sm bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
+              data-sign-text={copied ? "copied" : "copy"}
+              data-sign-category="button"
+              data-sign-description="Copy translated text to clipboard"
+              aria-label="Copy text to clipboard"
             >
               {copied ? (
                 <Check className="h-4 w-4" />
@@ -73,6 +77,10 @@ export default function TranslationOutput({
             <button
               onClick={handleDownload}
               className="flex items-center space-x-1 px-3 py-1 text-sm bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
+              data-sign-text="download"
+              data-sign-category="button"
+              data-sign-description="Download translated text as file"
+              aria-label="Download text as file"
             >
               <Download className="h-4 w-4" />
               <span>Download</span>

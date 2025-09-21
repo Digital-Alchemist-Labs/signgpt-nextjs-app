@@ -73,6 +73,10 @@ export default function TranslateMobile() {
               ? "text-primary border-b-2 border-primary"
               : "text-muted-foreground hover:text-foreground"
           }`}
+          data-sign-text="input"
+          data-sign-category="navigation"
+          data-sign-description="Switch to input tab"
+          aria-label="Input tab"
         >
           Input
         </button>
@@ -83,6 +87,10 @@ export default function TranslateMobile() {
               ? "text-primary border-b-2 border-primary"
               : "text-muted-foreground hover:text-foreground"
           }`}
+          data-sign-text="output"
+          data-sign-category="navigation"
+          data-sign-description="Switch to output tab"
+          aria-label="Output tab"
         >
           Output
         </button>
@@ -101,6 +109,10 @@ export default function TranslateMobile() {
                     ? "bg-primary text-primary-foreground"
                     : "bg-secondary text-secondary-foreground"
                 }`}
+                data-sign-text="camera"
+                data-sign-category="button"
+                data-sign-description="Switch to camera input mode"
+                aria-label="Camera mode"
               >
                 Camera
               </button>
@@ -111,6 +123,10 @@ export default function TranslateMobile() {
                     ? "bg-primary text-primary-foreground"
                     : "bg-secondary text-secondary-foreground"
                 }`}
+                data-sign-text="upload"
+                data-sign-category="button"
+                data-sign-description="Switch to upload input mode"
+                aria-label="Upload mode"
               >
                 Upload
               </button>
@@ -121,6 +137,10 @@ export default function TranslateMobile() {
                     ? "bg-primary text-primary-foreground"
                     : "bg-secondary text-secondary-foreground"
                 }`}
+                data-sign-text="text"
+                data-sign-category="button"
+                data-sign-description="Switch to text input mode"
+                aria-label="Text mode"
               >
                 Text
               </button>
