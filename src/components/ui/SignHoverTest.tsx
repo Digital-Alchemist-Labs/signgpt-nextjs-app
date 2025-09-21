@@ -63,8 +63,8 @@ export default function SignHoverTest() {
 
         {buttons.length === 0 && (
           <p className="text-xs text-muted-foreground italic">
-            No dynamic buttons yet. Click "Add Dynamic Button" to test SignHover
-            on new elements.
+            No dynamic buttons yet. Click &quot;Add Dynamic Button&quot; to test
+            SignHover on new elements.
           </p>
         )}
       </div>
@@ -98,7 +98,7 @@ export default function SignHoverTest() {
         </div>
         <ul className="list-disc list-inside space-y-1 mt-2">
           <li>Hover over existing buttons to see SignHover working</li>
-          <li>Click "Add Dynamic Button" to create new elements</li>
+          <li>Click &quot;Add Dynamic Button&quot; to create new elements</li>
           <li>
             Hover over newly created buttons - they should also show SignHover
           </li>

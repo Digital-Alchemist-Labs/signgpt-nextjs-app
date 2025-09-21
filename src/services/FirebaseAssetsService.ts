@@ -296,7 +296,7 @@ export class FirebaseAssetsService {
       let fileHandle;
       try {
         fileHandle = await directory.getFileHandle(fileName);
-      } catch (e) {
+      } catch {
         console.log("File handle does not exist in browser storage");
         return null;
       }

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { useSettings } from "@/contexts/SettingsContext";
+// import { useTranslation } from "react-i18next"; // Unused for now
+// import { useSettings } from "@/contexts/SettingsContext"; // Unused for now
 import { useTranslation as useTranslationState } from "@/contexts/TranslationContext";
 import { ChevronDown } from "lucide-react";
 
@@ -33,8 +33,8 @@ const signedLanguages = [
 ];
 
 export default function LanguageSelector() {
-  const { t } = useTranslation();
-  const { settings, updateSetting } = useSettings();
+  // const { t } = useTranslation(); // Unused for now
+  // const { settings, updateSetting } = useSettings(); // Unused for now
   const { state, setSourceLanguage, setTargetLanguage } = useTranslationState();
   const [isSourceOpen, setIsSourceOpen] = useState(false);
   const [isTargetOpen, setIsTargetOpen] = useState(false);

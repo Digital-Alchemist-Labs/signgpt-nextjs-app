@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useTranslation } from "react-i18next";
+// import { useTranslation } from "react-i18next"; // Unused for now
 import { useTranslation as useTranslationState } from "@/contexts/TranslationContext";
 import { Copy, Download, Loader2, Check } from "lucide-react";
 import PoseViewer from "@/components/pose/PoseViewer";
@@ -15,7 +15,7 @@ export default function TranslationOutput({
   text,
   isLoading,
 }: TranslationOutputProps) {
-  const { t } = useTranslation();
+  // const { t } = useTranslation(); // Unused for now
   const { state } = useTranslationState();
   const [copied, setCopied] = useState(false);
 

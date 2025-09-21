@@ -91,7 +91,7 @@ export default function EnhancedTextInput({
     useState<SpeechSynthesis | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // const debounceTimerRef = useRef<NodeJS.Timeout | null>(null); // Unused for now
   const textDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const suggestDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const [localText, setLocalText] = useState<string>("");
@@ -173,7 +173,15 @@ export default function EnhancedTextInput({
         speechSynthesis.cancel();
       }
     };
-  }, [setSpokenLanguageText, state.spokenLanguageText, state.spokenLanguage]);
+  }, [
+    setSpokenLanguageText,
+    state.spokenLanguageText,
+    state.spokenLanguage,
+    localText,
+    recognition,
+    speechSynthesis,
+    suggestAlternativeText,
+  ]);
 
   // Update recognition language when spoken language changes
   useEffect(() => {
@@ -242,7 +250,6 @@ export default function EnhancedTextInput({
     ) {
       setLocalText(global);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.spokenLanguageText]);
 
   const handleKeyDown = useCallback(() => {
@@ -360,7 +367,6 @@ export default function EnhancedTextInput({
         });
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     state.signedLanguagePose,
     state.signedLanguageVideo,

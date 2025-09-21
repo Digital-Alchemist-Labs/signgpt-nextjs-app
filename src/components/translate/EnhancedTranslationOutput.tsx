@@ -65,7 +65,7 @@ export default function EnhancedTranslationOutput({
           text = url.searchParams.get("text") || text;
           spokenLang = url.searchParams.get("spoken") || spokenLang;
           signedLang = url.searchParams.get("signed") || signedLang;
-        } catch (e) {
+        } catch {
           console.warn("Could not parse pose URL parameters");
         }
 
@@ -484,7 +484,7 @@ export default function EnhancedTranslationOutput({
           setIsVideoLoading(false);
           return;
         }
-      } catch (e) {
+      } catch {
         // Continue to generation fallback
       }
 
@@ -500,7 +500,12 @@ export default function EnhancedTranslationOutput({
     } finally {
       setIsVideoLoading(false);
     }
-  }, [state.signedLanguagePose, setSignedLanguageVideo, generateVideoFromPose]);
+  }, [
+    state.signedLanguagePose,
+    state.translatedText,
+    setSignedLanguageVideo,
+    generateVideoFromPose,
+  ]);
 
   // Log when pose URL changes (but don't auto-load to prevent CORS issues)
   useEffect(() => {

@@ -934,6 +934,7 @@ export default function SignHover({ config = {} }: SignHoverProps) {
     mergedConfig.enabled,
     mergedConfig.showDelay,
     mergedConfig.hideDelay,
+    mergedConfig.debug,
     handleMouseEnter,
     handleMouseLeave,
   ]);

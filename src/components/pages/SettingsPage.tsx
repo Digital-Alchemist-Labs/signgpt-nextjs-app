@@ -12,9 +12,9 @@ import {
   Monitor,
   Sun,
   Moon,
-  User,
+  // User, // Unused for now
   Accessibility,
-  Languages,
+  // Languages, // Unused for now
   Hand,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";

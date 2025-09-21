@@ -1,10 +1,10 @@
 "use client";
 
-import { useTheme } from "@/contexts/ThemeContext";
+// import { useTheme } from "@/contexts/ThemeContext"; // Unused for now
 import Image from "next/image";
 
 export default function Logo() {
-  const { resolvedTheme } = useTheme();
+  // const { resolvedTheme } = useTheme(); // Unused for now
 
   return (
     <div className="flex items-center space-x-2">

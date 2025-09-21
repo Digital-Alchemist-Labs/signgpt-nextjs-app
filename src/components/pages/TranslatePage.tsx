@@ -23,7 +23,7 @@ export default function TranslatePage() {
     flipTranslationDirection,
   } = useTranslationState();
   const [isMobile, setIsMobile] = useState(false);
-  const [uiMode, setUiMode] = useState<"original" | "enhanced">("enhanced");
+  const [uiMode] = useState<"original" | "enhanced">("enhanced"); // setUiMode unused for now
 
   useEffect(() => {
     const checkMobile = () => {

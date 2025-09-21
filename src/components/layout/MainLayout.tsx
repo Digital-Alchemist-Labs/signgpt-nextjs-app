@@ -1,10 +1,10 @@
 "use client";
 
 import { ReactNode, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation"; // Unused for now
 import { useTranslation } from "react-i18next";
 import { useSettings } from "@/contexts/SettingsContext";
-import { useTheme } from "@/contexts/ThemeContext";
+// import { useTheme } from "@/contexts/ThemeContext"; // Unused for now
 import Header from "./Header";
 import TabBar from "./TabBar";
 import SignHover from "@/components/ui/SignHover";
@@ -14,10 +14,10 @@ interface MainLayoutProps {
 }
 
 export default function MainLayout({ children }: MainLayoutProps) {
-  const router = useRouter();
+  // const router = useRouter(); // Unused for now
   const { t } = useTranslation();
   const { settings } = useSettings();
-  const { resolvedTheme } = useTheme();
+  // const { resolvedTheme } = useTheme(); // Unused for now
   const [isMainPage, setIsMainPage] = useState(true);
 
   useEffect(() => {

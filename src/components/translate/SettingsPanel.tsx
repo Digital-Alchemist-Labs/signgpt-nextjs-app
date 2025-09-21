@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
+// import { useTranslation } from "react-i18next"; // Unused for now
 import { useSettings } from "@/contexts/SettingsContext";
 import { Settings, X } from "lucide-react";
 
 export default function SettingsPanel() {
-  const { t } = useTranslation();
+  // const { t } = useTranslation(); // Unused for now
   const { settings, updateSetting } = useSettings();
   const [isOpen, setIsOpen] = useState(false);
 

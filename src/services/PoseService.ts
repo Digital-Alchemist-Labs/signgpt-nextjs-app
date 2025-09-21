@@ -100,7 +100,7 @@ export class PoseService {
   async predict(video: HTMLVideoElement | HTMLImageElement): Promise<void> {
     await this.load();
 
-    const frameType = this.isFirstFrame ? "first-frame" : "frame";
+    // const frameType = this.isFirstFrame ? "first-frame" : "frame"; // Unused for now
     // Note: Original project had Google Analytics tracing here
     this.isFirstFrame = false;
     return this.model.send({ image: video });

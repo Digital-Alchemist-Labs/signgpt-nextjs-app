@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
+// import { useTranslation } from "react-i18next"; // Unused for now
 import { Send, Loader2 } from "lucide-react";
 
 interface TextInputProps {
@@ -17,7 +17,7 @@ export default function TextInput({
   onTranslate,
   isLoading,
 }: TextInputProps) {
-  const { t } = useTranslation();
+  // const { t } = useTranslation(); // Unused for now
   const [localValue, setLocalValue] = useState(value);
 
   const handleSubmit = (e: React.FormEvent) => {

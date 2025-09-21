@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useSettings } from "@/contexts/SettingsContext";
+// import { useSettings } from "@/contexts/SettingsContext"; // Unused for now
 import { useTranslation as useTranslationState } from "@/contexts/TranslationContext";
 import VideoCapture from "@/components/translate/VideoCapture";
 import TextInput from "@/components/translate/TextInput";
@@ -12,7 +12,7 @@ import SettingsPanel from "@/components/translate/SettingsPanel";
 
 export default function TranslateMobile() {
   const { t } = useTranslation();
-  const { settings } = useSettings();
+  // const { settings } = useSettings(); // Unused for now
   const {
     state,
     setInputMode,

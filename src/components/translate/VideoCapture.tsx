@@ -1,16 +1,15 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { useSettings } from "@/contexts/SettingsContext";
+// import { useTranslation } from "react-i18next"; // Unused for now
+// import { useSettings } from "@/contexts/SettingsContext"; // Unused for now
 import { useTranslation as useTranslationState } from "@/contexts/TranslationContext";
-import { Camera, CameraOff, Play, Pause, Square } from "lucide-react";
+import { Camera, CameraOff, Play, Square } from "lucide-react"; // Pause unused for now
 
 export default function VideoCapture() {
-  const { t } = useTranslation();
-  const { settings } = useSettings();
-  const { state, setPose, setIsSigning, setSigningProbability } =
-    useTranslationState();
+  // const { t } = useTranslation(); // Unused for now
+  // const { settings } = useSettings(); // Unused for now
+  const { state } = useTranslationState(); // setPose, setIsSigning, setSigningProbability unused for now
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isStreaming, setIsStreaming] = useState(false);

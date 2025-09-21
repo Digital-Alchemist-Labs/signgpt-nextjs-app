@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect, useCallback, useState } from "react";
-import { useTranslation } from "@/contexts/TranslationContext";
+// import { useTranslation } from "@/contexts/TranslationContext"; // Unused for now
 
 // Declare pose-viewer custom element types
 declare global {
@@ -52,7 +52,7 @@ export const PoseViewer: React.FC<PoseViewerProps> = ({
   const [isCustomElementLoaded, setIsCustomElementLoaded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { setSignedLanguageVideo } = useTranslation();
+  // const { setSignedLanguageVideo } = useTranslation(); // Unused for now
 
   // Load the pose-viewer custom element
   const loadPoseViewerElement = useCallback(async () => {
@@ -231,7 +231,7 @@ export const PoseViewer: React.FC<PoseViewerProps> = ({
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [isPlaying]);
+  }, [isPlaying, isCustomElementLoaded]);
 
   if (error) {
     return (

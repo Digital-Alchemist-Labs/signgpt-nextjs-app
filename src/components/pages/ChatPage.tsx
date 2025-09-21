@@ -2,8 +2,8 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Send, RotateCcw, Trash2 } from "lucide-react";
-import { useTranslation } from "react-i18next";
-import { useSettings } from "@/contexts/SettingsContext";
+// import { useTranslation } from "react-i18next"; // Unused for now
+// import { useSettings } from "@/contexts/SettingsContext"; // Unused for now
 import { TranslationService } from "@/services/TranslationService";
 import { PoseViewer } from "@/components/pose/PoseViewer";
 import EnhancedChatPage from "./EnhancedChatPage";
@@ -26,11 +26,12 @@ interface ChatResponse {
 }
 
 export default function ChatPage() {
-  const { t } = useTranslation();
-  const { settings } = useSettings();
+  // const { t } = useTranslation(); // Unused for now
+  // const { settings } = useSettings(); // Unused for now
 
   // UI Mode state
-  const [uiMode, setUiMode] = useState<"original" | "enhanced">("original");
+  type UiMode = "original" | "enhanced";
+  const [uiMode, setUiMode] = useState<UiMode>("original");
 
   // Chat state
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -182,7 +183,7 @@ export default function ChatPage() {
         <button
           onClick={() => setUiMode("original")}
           className={`flex-1 py-3 px-6 text-sm font-medium transition-colors ${
-            uiMode === "original"
+            (uiMode as UiMode) === "original"
               ? "text-primary border-b-2 border-primary bg-primary/10"
               : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
           }`}
@@ -192,7 +193,7 @@ export default function ChatPage() {
         <button
           onClick={() => setUiMode("enhanced")}
           className={`flex-1 py-3 px-6 text-sm font-medium transition-colors ${
-            uiMode === "enhanced"
+            (uiMode as UiMode) === "enhanced"
               ? "text-primary border-b-2 border-primary bg-primary/10"
               : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
           }`}
@@ -409,7 +410,7 @@ function SignLanguageDisplay({ text }: { text: string }) {
   return (
     <div className="space-y-4">
       <div className="text-sm text-muted-foreground">
-        <strong>Response:</strong> "{text}"
+        <strong>Response:</strong> &quot;{text}&quot;
       </div>
 
       {/* Sign Language Display */}

@@ -1,18 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
-import { useSettings } from "@/contexts/SettingsContext";
+import { useState } from "react"; // useEffect unused for now
+// import { useTranslation } from "react-i18next"; // Unused for now
+// import { useSettings } from "@/contexts/SettingsContext"; // Unused for now
 import { useTranslation as useTranslationState } from "@/contexts/TranslationContext";
 import VideoCapture from "@/components/translate/VideoCapture";
 import TextInput from "@/components/translate/TextInput";
 import LanguageSelector from "@/components/translate/LanguageSelector";
 import TranslationOutput from "@/components/translate/TranslationOutput";
-import SettingsPanel from "@/components/translate/SettingsPanel";
+// import SettingsPanel from "@/components/translate/SettingsPanel"; // Unused for now
 
 export default function TranslateDesktop() {
-  const { t } = useTranslation();
-  const { settings, updateSetting } = useSettings();
+  // const { t } = useTranslation(); // Unused for now
+  // const { settings, updateSetting } = useSettings(); // Unused for now
   const {
     state,
     setInputMode,

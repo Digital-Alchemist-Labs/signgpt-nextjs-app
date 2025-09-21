@@ -3,11 +3,11 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Send, RotateCcw, Trash2, MessageCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useSettings } from "@/contexts/SettingsContext";
+// import { useSettings } from "@/contexts/SettingsContext"; // Unused for now
 import { TranslationService } from "@/services/TranslationService";
 import { PoseViewer } from "@/components/pose/PoseViewer";
-import EnhancedTextInput from "@/components/translate/EnhancedTextInput";
-import EnhancedTranslationOutput from "@/components/translate/EnhancedTranslationOutput";
+// import EnhancedTextInput from "@/components/translate/EnhancedTextInput"; // Unused for now
+// import EnhancedTranslationOutput from "@/components/translate/EnhancedTranslationOutput"; // Unused for now
 
 interface ChatMessage {
   id: string;
@@ -28,7 +28,7 @@ interface ChatResponse {
 
 export default function EnhancedChatPage() {
   const { t } = useTranslation();
-  const { settings } = useSettings();
+  // const { settings } = useSettings(); // Unused for now
 
   // Chat state
   const [messages, setMessages] = useState<ChatMessage[]>([]);
