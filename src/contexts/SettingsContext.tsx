@@ -14,6 +14,7 @@ interface Settings {
   signHoverEnabled: boolean;
   signHoverDelay: number;
   signHoverFormat: "video" | "image";
+  signHoverDebug: boolean;
 }
 
 interface SettingsContextType {
@@ -34,6 +35,7 @@ const defaultSettings: Settings = {
   signHoverEnabled: true,
   signHoverDelay: 300,
   signHoverFormat: "video",
+  signHoverDebug: false,
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(

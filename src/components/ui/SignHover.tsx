@@ -55,7 +55,7 @@ export default function SignHover({ config = {} }: SignHoverProps) {
     enabled: settings.signHoverEnabled ?? true,
     showDelay: settings.signHoverDelay ?? 300,
     hideDelay: 100,
-    debug: process.env.NODE_ENV === "development",
+    debug: settings.signHoverDebug ?? false, // Only enable debug when explicitly set
     ...config,
   };
 
@@ -827,17 +827,19 @@ export default function SignHover({ config = {} }: SignHoverProps) {
             }
 
             // Check for matching elements within the added node
-            const childElements = element.querySelectorAll
-              ? element.querySelectorAll(selectors.join(", "))
-              : [];
-            if (mergedConfig.debug && childElements.length > 0) {
-              console.log(
-                "SignHover: Found",
-                childElements.length,
-                "new child elements to attach listeners to"
+            if (element.querySelectorAll) {
+              const childElements = element.querySelectorAll(
+                selectors.join(", ")
               );
+              if (mergedConfig.debug && childElements.length > 0) {
+                console.log(
+                  "SignHover: Found",
+                  childElements.length,
+                  "new child elements to attach listeners to"
+                );
+              }
+              attachListeners(childElements);
             }
-            attachListeners(childElements);
           }
         });
 
@@ -862,10 +864,12 @@ export default function SignHover({ config = {} }: SignHoverProps) {
             }
 
             // Clean up child elements
-            const childElements = element.querySelectorAll
-              ? element.querySelectorAll(selectors.join(", "))
-              : [];
-            detachListeners(childElements);
+            if (element.querySelectorAll) {
+              const childElements = element.querySelectorAll(
+                selectors.join(", ")
+              );
+              detachListeners(childElements);
+            }
           }
         });
       });
@@ -890,7 +894,7 @@ export default function SignHover({ config = {} }: SignHoverProps) {
     const handleDelegatedMouseLeave = (event: Event) => {
       const target = event.target as Element;
       if (target && target.matches && target.matches(selectors.join(", "))) {
-        handleMouseLeave(event as MouseEvent);
+        handleMouseLeave();
       }
     };
 

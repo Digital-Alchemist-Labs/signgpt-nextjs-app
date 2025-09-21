@@ -356,6 +356,13 @@ export default function SettingsPage() {
                 updateSetting("signHoverFormat", value as "video" | "image")
               }
             />
+
+            <ToggleSetting
+              label="디버그 모드"
+              description="SignHover가 적용된 요소에 녹색 점선 테두리를 표시합니다 (개발용)"
+              checked={settings.signHoverDebug}
+              onChange={(checked) => updateSetting("signHoverDebug", checked)}
+            />
           </SettingSection>
 
           {/* Accessibility Settings */}

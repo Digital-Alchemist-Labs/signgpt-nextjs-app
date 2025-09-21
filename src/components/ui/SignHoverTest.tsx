@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
+import { useSettings } from "@/contexts/SettingsContext";
 
 export default function SignHoverTest() {
+  const { settings, updateSetting } = useSettings();
   const [buttons, setButtons] = useState<string[]>([]);
   const [counter, setCounter] = useState(1);
 
@@ -68,9 +70,32 @@ export default function SignHoverTest() {
       </div>
 
       <div className="mt-4 p-3 bg-muted rounded text-xs">
-        <p>
-          <strong>Test Instructions:</strong>
-        </p>
+        <div className="flex items-center justify-between mb-2">
+          <p>
+            <strong>Test Instructions:</strong>
+          </p>
+          <div className="flex items-center gap-2">
+            <label className="text-xs">Debug Mode:</label>
+            <input
+              type="checkbox"
+              checked={settings.signHoverDebug}
+              onChange={(e) =>
+                updateSetting("signHoverDebug", e.target.checked)
+              }
+              className="rounded"
+              data-sign-text="debug toggle"
+              data-sign-category="input"
+              data-sign-description="Toggle SignHover debug mode with green outlines"
+            />
+            <span
+              className={`text-xs ${
+                settings.signHoverDebug ? "text-green-600" : "text-gray-500"
+              }`}
+            >
+              {settings.signHoverDebug ? "ON" : "OFF"}
+            </span>
+          </div>
+        </div>
         <ul className="list-disc list-inside space-y-1 mt-2">
           <li>Hover over existing buttons to see SignHover working</li>
           <li>Click "Add Dynamic Button" to create new elements</li>
@@ -78,12 +103,11 @@ export default function SignHoverTest() {
             Hover over newly created buttons - they should also show SignHover
           </li>
           <li>
-            In development mode, elements with SignHover will have green dashed
-            outlines
+            Enable debug mode above to see green dashed outlines on elements
+            with SignHover
           </li>
         </ul>
       </div>
     </div>
   );
 }
-

@@ -57,10 +57,13 @@ export default function TranslateDesktop() {
       {/* Left Panel - Input */}
       <div className="flex-1 flex flex-col space-y-6 animate-slide-in">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
+          {/* <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
             {t("translate.title")}
           </h1>
-          <SettingsPanel />
+          <SettingsPanel /> */}
+          <div className="modern-card p-2">
+            <LanguageSelector />
+          </div>
         </div>
 
         {/* Input Mode Selector */}
@@ -138,9 +141,9 @@ export default function TranslateDesktop() {
         </div>
 
         {/* Language Selector */}
-        <div className="modern-card p-4">
+        {/* <div className="modern-card p-4">
           <LanguageSelector />
-        </div>
+        </div> */}
       </div>
 
       {/* Right Panel - Output */}

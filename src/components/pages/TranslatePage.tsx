@@ -105,7 +105,7 @@ export default function TranslatePage() {
           onClick={flipTranslationDirection}
           className="flex items-center justify-center w-12 h-12 bg-primary/10 text-primary rounded-full hover:bg-primary/20 transition-colors mt-7"
           title="Flip translation direction"
-          data-sign-text="전환"
+          data-sign-text="Switch"
           data-sign-category="button"
           data-sign-description="번역 방향을 바꾸는 버튼입니다"
           aria-label="번역 방향 전환"
@@ -281,7 +281,7 @@ export default function TranslatePage() {
   return (
     <div className="flex-1 flex flex-col">
       {/* Mode Toggle Tabs */}
-      <div className="flex border-b border-border bg-background">
+      {/* <div className="flex border-b border-border bg-background">
         <button
           onClick={() => setUiMode("original")}
           className={`flex-1 py-3 px-6 text-sm font-medium transition-colors ${
@@ -310,7 +310,7 @@ export default function TranslatePage() {
         >
           Enhanced
         </button>
-      </div>
+      </div> */}
 
       {/* Main content */}
       {uiMode === "enhanced" ? (

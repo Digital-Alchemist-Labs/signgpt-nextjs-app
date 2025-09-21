@@ -55,7 +55,7 @@ export default function Header() {
           <button
             onClick={() => router.push("/")}
             className="flex items-center space-x-2 hover:scale-105 transition-all duration-200 ease-out"
-            data-sign-text="홈"
+            data-sign-text="Home"
             data-sign-category="navigation"
             data-sign-description="홈페이지로 이동하는 버튼입니다"
             aria-label="홈으로 이동"
@@ -72,7 +72,7 @@ export default function Header() {
             <button
               onClick={() => router.push("/about")}
               className="px-4 py-2 text-sm font-medium text-foreground hover:text-foreground/80 transition-all duration-200 rounded-lg hover:bg-secondary/50"
-              data-sign-text="정보"
+              data-sign-text="About this application"
               data-sign-category="navigation"
               data-sign-description="애플리케이션 정보 페이지로 이동하는 버튼입니다"
               aria-label="정보 페이지로 이동"
