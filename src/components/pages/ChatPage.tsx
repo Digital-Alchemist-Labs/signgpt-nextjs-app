@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useSettings } from "@/contexts/SettingsContext";
 import { TranslationService } from "@/services/TranslationService";
 import { PoseViewer } from "@/components/pose/PoseViewer";
+import EnhancedChatPage from "./EnhancedChatPage";
 
 interface ChatMessage {
   id: string;
@@ -27,6 +28,9 @@ interface ChatResponse {
 export default function ChatPage() {
   const { t } = useTranslation();
   const { settings } = useSettings();
+
+  // UI Mode state
+  const [uiMode, setUiMode] = useState<"original" | "enhanced">("original");
 
   // Chat state
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -166,8 +170,37 @@ export default function ChatPage() {
     setTimeout(() => sendMessage(), 100);
   }, [messages, sendMessage]);
 
+  // Enhanced mode component
+  if (uiMode === "enhanced") {
+    return <EnhancedChatPage />;
+  }
+
   return (
     <div className="flex flex-col h-full bg-background">
+      {/* Mode Toggle Tabs */}
+      <div className="flex border-b border-border bg-background">
+        <button
+          onClick={() => setUiMode("original")}
+          className={`flex-1 py-3 px-6 text-sm font-medium transition-colors ${
+            uiMode === "original"
+              ? "text-primary border-b-2 border-primary bg-primary/10"
+              : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+          }`}
+        >
+          Original
+        </button>
+        <button
+          onClick={() => setUiMode("enhanced")}
+          className={`flex-1 py-3 px-6 text-sm font-medium transition-colors ${
+            uiMode === "enhanced"
+              ? "text-primary border-b-2 border-primary bg-primary/10"
+              : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+          }`}
+        >
+          Enhanced
+        </button>
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border bg-background/95 backdrop-blur-sm">
         <div>

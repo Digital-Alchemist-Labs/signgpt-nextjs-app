@@ -177,7 +177,16 @@ export const PoseViewer: React.FC<PoseViewerProps> = ({
 
   // Handle play/pause
   const handlePlayPause = useCallback(async () => {
-    if (!poseViewerRef.current) return;
+    if (!poseViewerRef.current || !isCustomElementLoaded) return;
+
+    // Additional safety check for the pose viewer methods
+    if (
+      typeof poseViewerRef.current.play !== "function" ||
+      typeof poseViewerRef.current.pause !== "function"
+    ) {
+      console.warn("PoseViewer methods not available yet");
+      return;
+    }
 
     try {
       if (isPlaying) {
@@ -190,12 +199,20 @@ export const PoseViewer: React.FC<PoseViewerProps> = ({
     } catch (error) {
       console.error("Failed to play/pause pose:", error);
     }
-  }, [isPlaying]);
+  }, [isPlaying, isCustomElementLoaded]);
 
   // Handle visibility change (pause when not visible)
   useEffect(() => {
     const handleVisibilityChange = async () => {
-      if (!poseViewerRef.current) return;
+      if (!poseViewerRef.current || !isCustomElementLoaded) return;
+
+      // Additional safety check for the pose viewer methods
+      if (
+        typeof poseViewerRef.current.play !== "function" ||
+        typeof poseViewerRef.current.pause !== "function"
+      ) {
+        return;
+      }
 
       try {
         if (document.visibilityState === "visible") {
