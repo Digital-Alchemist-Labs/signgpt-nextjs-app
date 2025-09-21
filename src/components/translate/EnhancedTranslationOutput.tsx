@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Download, Share2, Copy, RotateCcw, Settings } from "lucide-react";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { FirebaseAssetsService } from "@/services/FirebaseAssetsService";
+import { signHoverService } from "@/services/SignHoverService";
 import { PoseViewer } from "@/components/pose/PoseViewer";
 
 interface EnhancedTranslationOutputProps {
@@ -457,9 +458,42 @@ export default function EnhancedTranslationOutput({
     setVideoError(null);
 
     try {
-      // Generate video from pose data
-      const videoUrl = await generateVideoFromPose(state.signedLanguagePose);
-      setSignedLanguageVideo(videoUrl);
+      // 1) Use cache if available for the user's current text
+      const cached = signHoverService.getCachedSignVideo(state.translatedText);
+      if (cached) {
+        setSignedLanguageVideo(cached);
+        setIsVideoLoading(false);
+        return;
+      }
+
+      // 2) Try to fetch pre-rendered video from Firebase by sanitized text
+      try {
+        const sanitizedText = (state.translatedText || "")
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, "_");
+        const firebasePath = `sign_videos/${sanitizedText}.mp4`;
+        const firebase = assetsService.current;
+        await firebase.init();
+        const firebaseUrl = await firebase.getFileUri(firebasePath);
+
+        // Validate reachable via HEAD
+        const head = await fetch(firebaseUrl, { method: "HEAD" });
+        if (head.ok) {
+          setSignedLanguageVideo(firebaseUrl);
+          signHoverService.cacheSignVideo(state.translatedText, firebaseUrl);
+          setIsVideoLoading(false);
+          return;
+        }
+      } catch (e) {
+        // Continue to generation fallback
+      }
+
+      // 3) Fallback: generate video from pose parameters
+      const generatedUrl = await generateVideoFromPose(
+        state.signedLanguagePose
+      );
+      setSignedLanguageVideo(generatedUrl);
+      signHoverService.cacheSignVideo(state.translatedText, generatedUrl);
     } catch (error) {
       console.error("Failed to load video:", error);
       setVideoError("Failed to generate sign language video");
@@ -553,6 +587,10 @@ export default function EnhancedTranslationOutput({
           onClick={() => setShowViewerSelector(!showViewerSelector)}
           className="p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
           title="Change viewer"
+          data-sign-text="settings"
+          data-sign-category="button"
+          data-sign-description="Change video viewer type settings"
+          aria-label="Change viewer settings"
         >
           <Settings className="w-4 h-4" />
         </button>
@@ -602,6 +640,10 @@ export default function EnhancedTranslationOutput({
               onClick={copySignedLanguageVideo}
               className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-secondary-foreground bg-secondary rounded-lg hover:bg-secondary/80 transition-colors shadow-sm"
               title="Copy video"
+              data-sign-text="copy"
+              data-sign-category="button"
+              data-sign-description="Copy sign language video to clipboard"
+              aria-label="Copy video"
             >
               <Copy className="w-5 h-5" />
               Copy
@@ -612,6 +654,10 @@ export default function EnhancedTranslationOutput({
               onClick={shareSignedLanguageVideo}
               className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-secondary-foreground bg-secondary rounded-lg hover:bg-secondary/80 transition-colors shadow-sm"
               title="Share video"
+              data-sign-text="share"
+              data-sign-category="button"
+              data-sign-description="Share sign language video"
+              aria-label="Share video"
             >
               <Share2 className="w-5 h-5" />
               Share
@@ -622,6 +668,10 @@ export default function EnhancedTranslationOutput({
               onClick={downloadSignedLanguageVideo}
               className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-secondary-foreground bg-secondary rounded-lg hover:bg-secondary/80 transition-colors shadow-sm"
               title="Download video"
+              data-sign-text="download"
+              data-sign-category="button"
+              data-sign-description="Download sign language video"
+              aria-label="Download video"
             >
               <Download className="w-5 h-5" />
               Download
@@ -694,6 +744,10 @@ export default function EnhancedTranslationOutput({
                 type="button"
                 onClick={loadVideo}
                 className="px-3 py-1 text-sm text-destructive bg-destructive/20 rounded hover:bg-destructive/30 transition-colors"
+                data-sign-text="try again"
+                data-sign-category="button"
+                data-sign-description="Try to generate video again"
+                aria-label="Try again"
               >
                 Try again
               </button>
@@ -730,7 +784,8 @@ export default function EnhancedTranslationOutput({
         {/* Video element - only show for actual video URLs (blob URLs) */}
         {state.signedLanguageVideo &&
           (state.signedLanguageVideo.startsWith("blob:") ||
-            state.signedLanguageVideo.startsWith("data:video/")) &&
+            state.signedLanguageVideo.startsWith("data:video/") ||
+            state.signedLanguageVideo.startsWith("http")) &&
           !isVideoLoading &&
           !videoError && (
             <>

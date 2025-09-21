@@ -15,7 +15,9 @@ import {
   User,
   Accessibility,
   Languages,
+  Hand,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 export default function SettingsPage() {
   const { t } = useTranslation();
@@ -62,7 +64,7 @@ export default function SettingsPage() {
     children,
   }: {
     title: string;
-    icon: any;
+    icon: LucideIcon;
     children: React.ReactNode;
   }) => (
     <div className="bg-card rounded-lg p-6 shadow-sm border">
@@ -100,6 +102,10 @@ export default function SettingsPage() {
           className="sr-only"
           checked={checked}
           onChange={(e) => onChange(e.target.checked)}
+          data-sign-text={`toggle ${label.toLowerCase()}`}
+          data-sign-category="input"
+          data-sign-description={`Toggle ${label} setting on or off`}
+          aria-label={`Toggle ${label}`}
         />
         <div
           className={`w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 ${
@@ -132,6 +138,10 @@ export default function SettingsPage() {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="w-full px-3 py-2 border border-input bg-background rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-sm"
+        data-sign-text={`select ${label.toLowerCase()}`}
+        data-sign-category="dropdown"
+        data-sign-description={`Select ${label} from dropdown options`}
+        aria-label={`Select ${label}`}
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -179,6 +189,10 @@ export default function SettingsPage() {
                           ? "border-primary bg-primary/5"
                           : "border-border hover:border-primary/50"
                       }`}
+                      data-sign-text={`theme ${themeOption.label.toLowerCase()}`}
+                      data-sign-category="button"
+                      data-sign-description={`Switch to ${themeOption.label.toLowerCase()} theme`}
+                      aria-label={`Switch to ${themeOption.label.toLowerCase()} theme`}
                     >
                       <Icon
                         className={`h-5 w-5 mx-auto mb-1 ${
@@ -290,6 +304,56 @@ export default function SettingsPage() {
               ]}
               onChange={(value) =>
                 updateSetting("poseViewer", value as "pose" | "avatar")
+              }
+            />
+          </SettingSection>
+
+          {/* Sign Language Hover Settings */}
+          <SettingSection title="수어 호버 도움말" icon={Hand}>
+            <ToggleSetting
+              label="수어 호버 활성화"
+              description="UI 요소에 마우스를 올리면 수어 번역을 표시합니다"
+              checked={settings.signHoverEnabled}
+              onChange={(checked) => updateSetting("signHoverEnabled", checked)}
+            />
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">호버 지연 시간</label>
+              <p className="text-xs text-muted-foreground">
+                마우스 호버 후 수어가 표시되는 지연 시간 (밀리초)
+              </p>
+              <input
+                type="range"
+                min="100"
+                max="1000"
+                step="100"
+                value={settings.signHoverDelay}
+                onChange={(e) =>
+                  updateSetting("signHoverDelay", parseInt(e.target.value))
+                }
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                data-sign-text="delay slider"
+                data-sign-category="input"
+                data-sign-description="Adjust sign hover delay time in milliseconds"
+                aria-label="Sign hover delay slider"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>빠름 (100ms)</span>
+                <span className="font-medium">{settings.signHoverDelay}ms</span>
+                <span>느림 (1000ms)</span>
+              </div>
+            </div>
+
+            <SelectSetting
+              label="수어 표시 형식"
+              description="수어를 표시할 때 선호하는 미디어 형식을 선택하세요"
+              value={settings.signHoverFormat}
+              options={[
+                { value: "video", label: "동영상 (권장)" },
+                { value: "image", label: "이미지" },
+              ]}
+              onChange={(value) =>
+                updateSetting("signHoverFormat", value as "video" | "image")
               }
             />
           </SettingSection>

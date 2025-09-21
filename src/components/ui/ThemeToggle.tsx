@@ -26,6 +26,10 @@ export default function ThemeToggle() {
       onClick={handleThemeChange}
       className="p-2 rounded-md hover:bg-secondary transition-colors"
       title={`Current theme: ${currentTheme.label}`}
+      data-sign-text="테마"
+      data-sign-category="button"
+      data-sign-description="화면 테마를 변경하는 버튼입니다 (밝게/어둡게/시스템)"
+      aria-label={`테마 변경: ${currentTheme.label}`}
     >
       <Icon className="h-5 w-5" />
     </button>

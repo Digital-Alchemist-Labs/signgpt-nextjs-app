@@ -7,6 +7,7 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import Header from "./Header";
 import TabBar from "./TabBar";
+import SignHover from "@/components/ui/SignHover";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -45,6 +46,13 @@ export default function MainLayout({ children }: MainLayoutProps) {
       <Header />
       <main className="flex-1 animate-fade-in">{children}</main>
       {isMainPage && <TabBar />}
+      <SignHover
+        config={{
+          enabled: settings.signHoverEnabled,
+          showDelay: settings.signHoverDelay,
+          hideDelay: 100,
+        }}
+      />
     </div>
   );
 }

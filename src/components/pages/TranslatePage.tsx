@@ -104,6 +104,10 @@ export default function TranslatePage() {
           onClick={flipTranslationDirection}
           className="flex items-center justify-center w-12 h-12 bg-primary/10 text-primary rounded-full hover:bg-primary/20 transition-colors mt-7"
           title="Flip translation direction"
+          data-sign-text="전환"
+          data-sign-category="button"
+          data-sign-description="번역 방향을 바꾸는 버튼입니다"
+          aria-label="번역 방향 전환"
         >
           <ArrowLeftRight className="w-5 h-5" />
         </button>
@@ -210,6 +214,10 @@ export default function TranslatePage() {
             type="button"
             onClick={flipTranslationDirection}
             className="p-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors"
+            data-sign-text="전환"
+            data-sign-category="button"
+            data-sign-description="번역 방향을 바꾸는 버튼입니다"
+            aria-label="번역 방향 전환"
           >
             <ArrowLeftRight className="w-4 h-4" />
           </button>
@@ -280,6 +288,10 @@ export default function TranslatePage() {
               ? "text-primary border-b-2 border-primary bg-primary/10"
               : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
           }`}
+          data-sign-text="original"
+          data-sign-category="button"
+          data-sign-description="Switch to original translation mode"
+          aria-label="Switch to original mode"
         >
           Original
         </button>
@@ -290,6 +302,10 @@ export default function TranslatePage() {
               ? "text-primary border-b-2 border-primary bg-primary/10"
               : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
           }`}
+          data-sign-text="enhanced"
+          data-sign-category="button"
+          data-sign-description="Switch to enhanced translation mode with video"
+          aria-label="Switch to enhanced mode"
         >
           Enhanced
         </button>

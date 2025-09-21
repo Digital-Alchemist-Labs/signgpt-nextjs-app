@@ -463,6 +463,10 @@ export default function EnhancedTextInput({
               : "border-input bg-background"
           } text-foreground placeholder-muted-foreground`}
           style={{ minHeight: "80px", maxHeight: "300px" }}
+          data-sign-text="text input"
+          data-sign-category="input"
+          data-sign-description="Text input area for entering text to translate to sign language"
+          aria-label="Enter text to translate to sign language"
         />
 
         {/* Character count */}
@@ -500,6 +504,12 @@ export default function EnhancedTextInput({
                   : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
               }`}
               disabled={!recognition}
+              data-sign-text={isListening ? "stop" : "speak"}
+              data-sign-category="button"
+              data-sign-description={
+                isListening ? "Stop voice recording" : "Start voice recording"
+              }
+              aria-label={isListening ? "Stop listening" : "Start listening"}
             >
               {isListening ? (
                 <MicOff className="w-4 h-4" />
@@ -525,6 +535,10 @@ export default function EnhancedTextInput({
                     ? "bg-primary/10 text-primary hover:bg-primary/20"
                     : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                 }`}
+                data-sign-text="play"
+                data-sign-category="button"
+                data-sign-description="Play text as speech"
+                aria-label="Read text aloud"
               >
                 <Volume2 className="w-4 h-4" />
                 {isSpeaking ? "Stop" : "Listen"}
@@ -540,6 +554,10 @@ export default function EnhancedTextInput({
                 refocusTextarea();
               }}
               className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-secondary-foreground bg-secondary rounded-lg hover:bg-secondary/80 transition-colors"
+              data-sign-text="copy"
+              data-sign-category="button"
+              data-sign-description="Copy text to clipboard"
+              aria-label="Copy text"
             >
               <Copy className="w-4 h-4" />
               Copy

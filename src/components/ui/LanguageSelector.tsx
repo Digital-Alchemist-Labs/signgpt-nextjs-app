@@ -39,6 +39,10 @@ export default function LanguageSelector() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-foreground hover:text-foreground/80 transition-colors rounded-md hover:bg-accent"
+        data-sign-text="언어"
+        data-sign-category="dropdown"
+        data-sign-description="인터페이스 언어를 선택하는 드롭다운 메뉴입니다"
+        aria-label="언어 선택"
       >
         <span className="text-lg">{currentLanguage.flag}</span>
         <span>{currentLanguage.name}</span>
@@ -64,6 +68,10 @@ export default function LanguageSelector() {
                       ? "opacity-50 cursor-not-allowed"
                       : "hover:bg-accent"
                   }`}
+                  data-sign-text={language.name}
+                  data-sign-category="dropdown"
+                  data-sign-description={`${language.name} 언어로 변경하는 옵션입니다`}
+                  aria-label={`${language.name} 언어 선택`}
                 >
                   <span className="text-lg">{language.flag}</span>
                   <span>{language.name}</span>

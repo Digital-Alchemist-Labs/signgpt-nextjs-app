@@ -1166,6 +1166,10 @@ export default function EnhancedLanguageSelector({
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between px-4 py-2 text-left bg-background border border-input rounded-lg hover:border-input/80 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+        data-sign-text="language selector"
+        data-sign-category="dropdown"
+        data-sign-description={`Select ${type} language - currently ${selectedLanguage.name}`}
+        aria-label={`Select ${type} language`}
       >
         <div className="flex items-center gap-2 min-w-0 flex-1">
           {showFlags && selectedLanguage.flag && (
@@ -1208,6 +1212,10 @@ export default function EnhancedLanguageSelector({
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 text-sm border border-input rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                 autoFocus
+                data-sign-text="search"
+                data-sign-category="input"
+                data-sign-description="Search for languages in the list"
+                aria-label="Search languages"
               />
             </div>
           </div>
@@ -1234,6 +1242,10 @@ export default function EnhancedLanguageSelector({
                         ? "opacity-50 cursor-not-allowed"
                         : "hover:bg-secondary"
                     }`}
+                    data-sign-text={language.name.toLowerCase()}
+                    data-sign-category="dropdown"
+                    data-sign-description={`Select ${language.name} language`}
+                    aria-label={`Select ${language.name}`}
                   >
                     {showFlags && language.flag && (
                       <span className="text-lg flex-shrink-0">
