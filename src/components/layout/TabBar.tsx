@@ -2,7 +2,7 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { Home, Settings } from "lucide-react";
+import { Home, MessageCircle, Settings } from "lucide-react";
 
 export default function TabBar() {
   const router = useRouter();
@@ -15,6 +15,12 @@ export default function TabBar() {
       label: t("common.home"),
       icon: Home,
       path: "/",
+    },
+    {
+      id: "chat",
+      label: t("common.chat"),
+      icon: MessageCircle,
+      path: "/chat",
     },
     {
       id: "settings",
