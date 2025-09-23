@@ -21,6 +21,7 @@ export interface EnvironmentConfig {
   signMtCloudFunctionUrl: string;
   firebaseStorageBucketUrl: string;
   firebaseStorageBucket: string;
+  signGptClientUrl: string; // SignGPT Client API for sign recognition
 
   // MediaPipe Configuration
   mediaPipeModelPath: string;
@@ -66,6 +67,8 @@ const defaultConfig: EnvironmentConfig = {
     "https://firebasestorage.googleapis.com/v0/b/sign-mt-assets/o/",
   firebaseStorageBucket:
     process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_GS || "gs://sign-mt-assets",
+  signGptClientUrl:
+    process.env.NEXT_PUBLIC_SIGNGPT_CLIENT_URL || "http://localhost:8001",
 
   // MediaPipe Configuration
   mediaPipeModelPath:

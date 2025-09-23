@@ -22,12 +22,44 @@ export class MediapipeHolisticService {
     try {
       // Dynamic import of MediaPipe Holistic
       const holisticModule = await import("@mediapipe/holistic");
-      this.holistic = holisticModule.default || holisticModule;
-      console.log("MediaPipe Holistic loaded successfully");
+
+      // Handle different module export formats
+      if (holisticModule.default) {
+        this.holistic = holisticModule.default;
+      } else if (holisticModule.Holistic) {
+        this.holistic = holisticModule as typeof holistic;
+      } else {
+        this.holistic = holisticModule as typeof holistic;
+      }
+
+      console.log("MediaPipe Holistic loaded successfully", this.holistic);
+
+      // Verify that the Holistic constructor is available
+      if (
+        !this.holistic.Holistic ||
+        typeof this.holistic.Holistic !== "function"
+      ) {
+        throw new Error(
+          "MediaPipe Holistic constructor not found or not a function"
+        );
+      }
+
       return this.holistic;
     } catch (error) {
       console.error("Failed to load MediaPipe Holistic:", error);
-      throw error;
+
+      // Check for native abort errors
+      if (error instanceof Error && error.message.includes("abort")) {
+        throw new Error(
+          "MediaPipe native code aborted - this may be due to browser compatibility issues"
+        );
+      }
+
+      throw new Error(
+        `MediaPipe loading failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
     }
   }
 

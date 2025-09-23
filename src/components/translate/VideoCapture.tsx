@@ -37,7 +37,19 @@ export default function VideoCapture() {
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+
+        // Safely play video with error handling
+        try {
+          // Check if video element is still in DOM before playing
+          if (videoRef.current && document.contains(videoRef.current)) {
+            await videoRef.current.play();
+          }
+        } catch (playError) {
+          // Ignore AbortError when component is unmounting
+          if (playError.name !== "AbortError") {
+            console.error("Video play failed:", playError);
+          }
+        }
       }
     } catch (err) {
       console.error("Error accessing camera:", err);
@@ -49,7 +61,11 @@ export default function VideoCapture() {
     if (videoRef.current && videoRef.current.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream;
       stream.getTracks().forEach((track) => track.stop());
+
+      // Safely clean up video element
+      videoRef.current.pause();
       videoRef.current.srcObject = null;
+      videoRef.current.load(); // Reset video element
     }
   };
 

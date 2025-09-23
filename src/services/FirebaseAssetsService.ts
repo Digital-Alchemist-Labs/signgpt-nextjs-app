@@ -208,8 +208,24 @@ export class FirebaseAssetsService {
       console.log("Browser storage not supported, using direct URL");
     }
 
-    // Fallback to direct URL
-    return this.buildRemotePath(path);
+    // Check if the remote file exists before returning URL
+    try {
+      const remoteUrl = this.buildRemotePath(path);
+
+      // Quick HEAD request to check if file exists
+      const response = await fetch(remoteUrl, { method: "HEAD" });
+      if (!response.ok) {
+        console.warn(`Firebase asset not found: ${path} (${response.status})`);
+        // Return a placeholder or null instead of a 404 URL
+        throw new Error(`Asset not found: ${path}`);
+      }
+
+      return remoteUrl;
+    } catch (error) {
+      console.warn(`Failed to access Firebase asset: ${path}`, error);
+      // Instead of returning a 404 URL, throw an error
+      throw new Error(`Firebase asset unavailable: ${path}`);
+    }
   }
 
   async deleteFile(path: string): Promise<void> {

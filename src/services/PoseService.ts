@@ -69,11 +69,26 @@ export class PoseService {
       return;
     }
 
-    await this.holistic.load();
+    try {
+      // Load the MediaPipe Holistic module
+      const holisticModule = await this.holistic.load();
+      console.log("MediaPipe module loaded:", holisticModule);
 
-    this.model = new this.holistic.Holistic({
-      locateFile: (file: string) => `${environment.mediaPipeModelPath}${file}`,
-    });
+      // Create the Holistic instance with proper configuration
+      this.model = new this.holistic.Holistic({
+        locateFile: (file: string) => {
+          // Use the MediaPipe CDN or local files
+          const basePath = `https://cdn.jsdelivr.net/npm/@mediapipe/holistic@0.5.1675471629/`;
+          console.log(`Loading MediaPipe file: ${basePath}${file}`);
+          return `${basePath}${file}`;
+        },
+      });
+
+      console.log("MediaPipe Holistic model created successfully");
+    } catch (error) {
+      console.error("Failed to create MediaPipe Holistic model:", error);
+      throw error;
+    }
 
     this.model.setOptions({
       upperBodyOnly: false,

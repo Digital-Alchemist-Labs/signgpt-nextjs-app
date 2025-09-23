@@ -25,6 +25,11 @@
     "chat": "Chat",
     "settings": "Settings"
   },
+  "chat": {
+    "Enhanced Chat": "Enhanced Chat",
+    "title": "Chat",
+    "description": "Chat with SignGPT AI Assistant"
+  },
   "settings": {
     "title": "Settings",
     "description": "Customize your SignGPT experience with these settings.",

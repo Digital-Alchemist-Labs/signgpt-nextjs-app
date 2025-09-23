@@ -35,7 +35,19 @@ export const VideoPoseProcessor: React.FC<VideoPoseProcessorProps> = ({
 
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
-        videoRef.current.play();
+
+        // Safely play video with error handling
+        try {
+          // Check if video element is still in DOM before playing
+          if (videoRef.current && document.contains(videoRef.current)) {
+            await videoRef.current.play();
+          }
+        } catch (playError) {
+          // Ignore AbortError when component is unmounting
+          if (playError.name !== "AbortError") {
+            console.error("Video play failed:", playError);
+          }
+        }
       }
 
       setStream(mediaStream);
@@ -47,13 +59,24 @@ export const VideoPoseProcessor: React.FC<VideoPoseProcessorProps> = ({
   }, [state.isLoaded, loadModel]);
 
   const stopCamera = useCallback(() => {
+    // Stop media stream first
     if (stream) {
       stream.getTracks().forEach((track) => track.stop());
       setStream(null);
     }
 
+    // Safely clean up video element
     if (videoRef.current) {
-      videoRef.current.srcObject = null;
+      // Pause video before removing source to prevent AbortError
+      videoRef.current.pause();
+
+      // Wait for pause to complete before cleaning up
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = null;
+          videoRef.current.load(); // Reset video element
+        }
+      }, 10);
     }
 
     setIsRecording(false);
@@ -114,6 +137,7 @@ export const VideoPoseProcessor: React.FC<VideoPoseProcessorProps> = ({
     }
   }, [processCurrentFrame, isRecording]);
 
+  // Cleanup effect for pose detection
   React.useEffect(() => {
     let cleanup: (() => void) | undefined;
 
@@ -123,6 +147,14 @@ export const VideoPoseProcessor: React.FC<VideoPoseProcessorProps> = ({
 
     return cleanup;
   }, [isRecording, startPoseDetection]);
+
+  // Cleanup effect for component unmount
+  React.useEffect(() => {
+    return () => {
+      // Clean up when component unmounts
+      stopCamera();
+    };
+  }, [stopCamera]);
 
   return (
     <div className={`video-pose-processor ${className}`}>

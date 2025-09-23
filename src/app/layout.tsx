@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Roboto } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
@@ -14,21 +14,25 @@ const roboto = Roboto({
   variable: "--font-roboto",
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+  ],
+};
+
 export const metadata: Metadata = {
   title: "SignGPT",
   description:
     "AI-Powered Sign Language Translation with Cutting-Edge Real-Time Models. Translate Sign Language instantly with advanced AI technology on desktop and mobile.",
   keywords:
     "SignGPT, AI sign language, sign language translation, sign language interpreter, sign language dictionary, sign language translator, sign language app, AI translation",
-
   authors: [{ name: "Amit Moryossef" }],
   referrer: "origin",
   robots: "index, follow",
-  viewport: "viewport-fit=cover, width=device-width, initial-scale=1",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#000000" },
-  ],
   manifest: "/manifest.json",
   icons: {
     icon: "/favicon.ico",
@@ -69,7 +73,6 @@ export default function RootLayout({
           type="application/opensearchdescription+xml"
           href="/opensearch.xml"
         />
-        <link rel="preload" as="image" href="/assets/flags/1x1/us.svg" />
       </head>
       <body className={`${inter.variable} ${roboto.variable} antialiased`}>
         <Providers>{children}</Providers>
