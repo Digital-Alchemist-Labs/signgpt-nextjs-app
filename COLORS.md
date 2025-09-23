@@ -234,3 +234,4 @@ The color system is designed to be easily customizable while maintaining consist
 ---
 
 _This color system provides a solid foundation for building beautiful, accessible, and consistent user interfaces in both light and dark modes._
+
