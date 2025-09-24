@@ -242,10 +242,15 @@ export default function ChatPage() {
     messages, // Add messages to dependencies since new messages trigger video display
   ]);
 
-  // WebSocket 연결 (원본 signgpt-front 방식)
-  const connectWebSocket = useCallback(() => {
+  // WebSocket 연결 (보안 강화된 프록시 방식)
+  const connectWebSocket = useCallback(async () => {
     try {
-      const wsUrl = environment.webSocketUrl;
+      // API 프록시를 통해 WebSocket URL 가져오기
+      const proxyResponse = await fetch("/api/websocket-proxy");
+      if (!proxyResponse.ok) {
+        throw new Error("Failed to get WebSocket configuration");
+      }
+      const { webSocketUrl: wsUrl } = await proxyResponse.json();
       console.log("SignGPT Server에 WebSocket 연결 시도 중...", wsUrl);
 
       // SignGPT Server WebSocket 연결
@@ -382,10 +387,11 @@ export default function ChatPage() {
         }
       };
     } catch (error) {
-      console.error("Error connecting to WebSocket:", error);
+      console.error("❌ WebSocket 연결 설정 오류:", error);
       setIsWebSocketConnected(false);
+      setWebSocketError("WebSocket 연결 설정에 실패했습니다.");
     }
-  }, [isSignRecognitionActive]);
+  }, [isWebSocketConnected]);
 
   // WebSocket 연결 해제
   const disconnectWebSocket = useCallback(() => {

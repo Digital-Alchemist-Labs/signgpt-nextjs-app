@@ -289,13 +289,17 @@ export default function EnhancedChatPage({
     messages, // Add messages to dependencies since new messages trigger video display
   ]);
 
-  // WebSocket connection functions with enhanced error handling
-  const connectWebSocket = useCallback(() => {
+  // WebSocket connection functions with enhanced error handling (보안 강화된 프록시 방식)
+  const connectWebSocket = useCallback(async () => {
     try {
       console.log("Connecting to SignGPT Server WebSocket...");
 
-      // Try primary server first
-      const primaryWsUrl = environment.webSocketUrl;
+      // API 프록시를 통해 WebSocket URL 가져오기
+      const proxyResponse = await fetch("/api/websocket-proxy");
+      if (!proxyResponse.ok) {
+        throw new Error("Failed to get WebSocket configuration");
+      }
+      const { webSocketUrl: primaryWsUrl } = await proxyResponse.json();
       console.log("Attempting connection to:", primaryWsUrl);
 
       wsRef.current = new WebSocket(primaryWsUrl);

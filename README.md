@@ -74,14 +74,36 @@ pnpm dev
 프로젝트 루트에 `.env.local` 파일을 생성하고 다음 환경 변수를 설정하세요:
 
 ```env
-# SignGPT API 서버 URL
-NEXT_PUBLIC_SIGNGPT_CLIENT_URL=your_signgpt_server_url_here
+# 🔒 서버 사이드 전용 환경변수 (보안 강화됨)
+# SignGPT API 서버 URL (내부 서버 URL - 클라이언트에 노출되지 않음)
+SIGNGPT_CLIENT_URL=your_signgpt_server_url_here
 
-# WebSocket 서버 URL (선택사항)
-NEXT_PUBLIC_WEBSOCKET_URL=your_websocket_server_url_here
+# WebSocket 서버 URL (내부 서버 URL - 클라이언트에 노출되지 않음)
+WEBSOCKET_URL=your_websocket_server_url_here
+
+# API Base URL (내부 서버 URL - 클라이언트에 노출되지 않음)
+API_BASE_URL=your_api_server_url_here
+
+# 🌐 클라이언트 사이드 환경변수 (공개 정보만)
+# Firebase 설정 (Firebase SDK에 필요한 공개 정보)
+NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_firebase_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_firebase_app_id
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_firebase_measurement_id
+
+# ReCAPTCHA Site Key (공개 키)
+NEXT_PUBLIC_RECAPTCHA_KEY=your_recaptcha_site_key
 ```
 
-> **보안 주의사항**: 실제 서버 URL은 `.env.local` 파일에 설정하세요. 이 파일은 Git에 커밋되지 않습니다.
+> **🔒 보안 강화**:
+>
+> - `NEXT_PUBLIC_` 접두사가 없는 변수들은 서버에서만 접근 가능합니다
+> - 내부 서버 URL은 더 이상 클라이언트에 노출되지 않습니다
+> - API 프록시를 통해 안전하게 서버와 통신합니다
+> - `.env.local` 파일은 Git에 커밋되지 않습니다
 
 ## 사용법
 

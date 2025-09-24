@@ -73,11 +73,8 @@ export class IntegratedSignRecognitionService {
       onError?: (error: string) => void;
     } = {}
   ) {
-    this.apiBaseUrl =
-      apiBaseUrl ||
-      environment.apiBaseUrl ||
-      environment.signGptClientUrl ||
-      "http://localhost:8001";
+    // 보안상 클라이언트에서 직접 서버 URL을 사용하지 않고 API 프록시를 사용
+    this.apiBaseUrl = apiBaseUrl || "/api/sign-recognition";
 
     // 콜백 함수 설정
     this.onRecognitionResult = options.onRecognitionResult;

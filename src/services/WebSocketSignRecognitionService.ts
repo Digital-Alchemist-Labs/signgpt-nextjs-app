@@ -39,7 +39,7 @@ export class WebSocketSignRecognitionService {
 
   constructor(options: WebSocketSignRecognitionOptions = {}) {
     this.options = {
-      serverUrl: options.serverUrl || environment.webSocketUrl,
+      serverUrl: options.serverUrl || "", // Will be fetched from API proxy
       autoReconnect: options.autoReconnect ?? true,
       reconnectInterval: options.reconnectInterval || 3000,
       onConnectionChange: options.onConnectionChange || (() => {}),
@@ -50,11 +50,21 @@ export class WebSocketSignRecognitionService {
   }
 
   /**
-   * WebSocket 연결 시작
+   * WebSocket 연결 시작 (보안 강화된 프록시 방식)
    */
-  connect(): Promise<void> {
-    return new Promise((resolve, reject) => {
+  async connect(): Promise<void> {
+    return new Promise(async (resolve, reject) => {
       try {
+        // API 프록시를 통해 WebSocket URL 가져오기
+        if (!this.options.serverUrl) {
+          const proxyResponse = await fetch("/api/websocket-proxy");
+          if (!proxyResponse.ok) {
+            throw new Error("Failed to get WebSocket configuration");
+          }
+          const { webSocketUrl } = await proxyResponse.json();
+          this.options.serverUrl = webSocketUrl;
+        }
+
         console.log("WebSocket 연결 시도 중...", this.options.serverUrl);
         this.ws = new WebSocket(this.options.serverUrl);
 
