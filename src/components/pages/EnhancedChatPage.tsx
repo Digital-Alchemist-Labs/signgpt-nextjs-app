@@ -1252,6 +1252,7 @@ export default function EnhancedChatPage({
                       ref={handTrackerRef}
                       onKeypointsDetected={handleKeypointsDetected}
                       isRecording={false}
+                      showKeypoints={isSignRecognitionActive} // 수어 인식 활성화 상태에 따라 키포인트 표시
                     />
                     {frameCount > 0 && (
                       <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">

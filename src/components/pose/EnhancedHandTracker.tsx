@@ -13,6 +13,7 @@ import React, {
 interface HandTrackerProps {
   onKeypointsDetected: (keypoints: number[][]) => void;
   isRecording: boolean;
+  showKeypoints?: boolean; // 키포인트 표시 여부를 제어하는 prop 추가
 }
 
 export interface HandTrackerRef {
@@ -24,7 +25,7 @@ export interface HandTrackerRef {
 }
 
 const HandTracker = forwardRef<HandTrackerRef, HandTrackerProps>(
-  ({ onKeypointsDetected, isRecording }, ref) => {
+  ({ onKeypointsDetected, isRecording, showKeypoints = true }, ref) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const handsRef = useRef<any>(null);
@@ -290,92 +291,95 @@ const HandTracker = forwardRef<HandTrackerRef, HandTrackerProps>(
             console.error("캔버스 그리기 오류:", drawError);
           }
 
-          // 얼굴 랜드마크 그리기
-          if (
-            results.faceLandmarks &&
-            mediaPipe.drawConnectors &&
-            mediaPipe.FACEMESH_CONTOURS
-          ) {
-            mediaPipe.drawConnectors(
-              ctx,
-              results.faceLandmarks,
-              mediaPipe.FACEMESH_CONTOURS,
-              {
-                color: "#C0C0C070",
-                lineWidth: 1,
-              }
-            );
-          }
-
-          // 포즈(상반신) 랜드마크 그리기
-          if (
-            results.poseLandmarks &&
-            mediaPipe.drawConnectors &&
-            mediaPipe.POSE_CONNECTIONS
-          ) {
-            mediaPipe.drawConnectors(
-              ctx,
-              results.poseLandmarks,
-              mediaPipe.POSE_CONNECTIONS,
-              {
-                color: "#00CEFF",
-                lineWidth: 2,
-              }
-            );
-            if (mediaPipe.drawLandmarks) {
-              mediaPipe.drawLandmarks(ctx, results.poseLandmarks, {
-                color: "#FF0000",
-                lineWidth: 1,
-                radius: 2,
-              });
+          // 키포인트 표시가 활성화된 경우에만 랜드마크 그리기
+          if (showKeypoints) {
+            // 얼굴 랜드마크 그리기
+            if (
+              results.faceLandmarks &&
+              mediaPipe.drawConnectors &&
+              mediaPipe.FACEMESH_CONTOURS
+            ) {
+              mediaPipe.drawConnectors(
+                ctx,
+                results.faceLandmarks,
+                mediaPipe.FACEMESH_CONTOURS,
+                {
+                  color: "#C0C0C070",
+                  lineWidth: 1,
+                }
+              );
             }
-          }
 
-          // 손 랜드마크 그리기 (왼손)
-          if (
-            results.leftHandLandmarks &&
-            mediaPipe.drawConnectors &&
-            mediaPipe.HAND_CONNECTIONS
-          ) {
-            mediaPipe.drawConnectors(
-              ctx,
-              results.leftHandLandmarks,
-              mediaPipe.HAND_CONNECTIONS,
-              {
-                color: "#CC0000",
-                lineWidth: 2,
+            // 포즈(상반신) 랜드마크 그리기
+            if (
+              results.poseLandmarks &&
+              mediaPipe.drawConnectors &&
+              mediaPipe.POSE_CONNECTIONS
+            ) {
+              mediaPipe.drawConnectors(
+                ctx,
+                results.poseLandmarks,
+                mediaPipe.POSE_CONNECTIONS,
+                {
+                  color: "#00CEFF",
+                  lineWidth: 2,
+                }
+              );
+              if (mediaPipe.drawLandmarks) {
+                mediaPipe.drawLandmarks(ctx, results.poseLandmarks, {
+                  color: "#FF0000",
+                  lineWidth: 1,
+                  radius: 2,
+                });
               }
-            );
-            if (mediaPipe.drawLandmarks) {
-              mediaPipe.drawLandmarks(ctx, results.leftHandLandmarks, {
-                color: "#00FF00",
-                lineWidth: 1,
-                radius: 3,
-              });
             }
-          }
 
-          // 손 랜드마크 그리기 (오른손)
-          if (
-            results.rightHandLandmarks &&
-            mediaPipe.drawConnectors &&
-            mediaPipe.HAND_CONNECTIONS
-          ) {
-            mediaPipe.drawConnectors(
-              ctx,
-              results.rightHandLandmarks,
-              mediaPipe.HAND_CONNECTIONS,
-              {
-                color: "#0000CC",
-                lineWidth: 2,
+            // 손 랜드마크 그리기 (왼손)
+            if (
+              results.leftHandLandmarks &&
+              mediaPipe.drawConnectors &&
+              mediaPipe.HAND_CONNECTIONS
+            ) {
+              mediaPipe.drawConnectors(
+                ctx,
+                results.leftHandLandmarks,
+                mediaPipe.HAND_CONNECTIONS,
+                {
+                  color: "#CC0000",
+                  lineWidth: 2,
+                }
+              );
+              if (mediaPipe.drawLandmarks) {
+                mediaPipe.drawLandmarks(ctx, results.leftHandLandmarks, {
+                  color: "#00FF00",
+                  lineWidth: 1,
+                  radius: 3,
+                });
               }
-            );
-            if (mediaPipe.drawLandmarks) {
-              mediaPipe.drawLandmarks(ctx, results.rightHandLandmarks, {
-                color: "#00FF00",
-                lineWidth: 1,
-                radius: 3,
-              });
+            }
+
+            // 손 랜드마크 그리기 (오른손)
+            if (
+              results.rightHandLandmarks &&
+              mediaPipe.drawConnectors &&
+              mediaPipe.HAND_CONNECTIONS
+            ) {
+              mediaPipe.drawConnectors(
+                ctx,
+                results.rightHandLandmarks,
+                mediaPipe.HAND_CONNECTIONS,
+                {
+                  color: "#0000CC",
+                  lineWidth: 2,
+                }
+              );
+              if (mediaPipe.drawLandmarks) {
+                mediaPipe.drawLandmarks(ctx, results.rightHandLandmarks, {
+                  color: "#00FF00",
+                  lineWidth: 1,
+                  radius: 3,
+                });
+              }
             }
           }
 
