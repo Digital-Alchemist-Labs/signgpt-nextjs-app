@@ -80,7 +80,7 @@ export default function EnhancedChatPage() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // API configuration
-  const API_BASE_URL = "http://localhost:8000"; // SignGPT Crew Server
+  const API_BASE_URL = "https://emotional-candide-kyokyo-a75699ed.koyeb.app"; // SignGPT Crew Server
 
   // Auto-scroll to bottom when new messages are added
   const scrollToBottom = useCallback(() => {
