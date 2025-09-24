@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerEnvironment } from "@/config/environment";
 
+// API Routes는 동적 렌더링이 필요함
+export const dynamic = "force-dynamic";
+
 // 수어 인식 API 프록시
 export async function POST(request: NextRequest) {
   try {

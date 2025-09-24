@@ -122,7 +122,8 @@ export default function EnhancedChatPage({
   const wsRef = useRef<WebSocket | null>(null);
 
   // API configuration
-  const API_BASE_URL = environment.apiBaseUrl; // SignGPT Crew Server
+  // API configuration - use local API routes that proxy to external server
+  const API_BASE_URL = "/api"; // Local Next.js API routes
 
   // Auto-scroll to bottom when new messages are added
   const scrollToBottom = useCallback(() => {

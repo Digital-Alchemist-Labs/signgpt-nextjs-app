@@ -40,11 +40,13 @@ export class SignRecognitionService {
   private readonly recognitionInterval = 1000; // Check every 1 second
 
   constructor(apiBaseUrl?: string) {
-    // Use SignGPT API URL for LLM processing
+    // Use local API proxy when running on client-side, external URL on server-side
     this.apiBaseUrl =
       apiBaseUrl ||
-      environment.apiBaseUrl ||
-      environment.signGptClientUrl ||
+      (typeof window !== "undefined"
+        ? "/api"
+        : environment.server.apiBaseUrl) ||
+      environment.server.signGptClientUrl ||
       "http://localhost:8001"; // Fallback to localhost
 
     // Initialize OpenVINO service
@@ -147,8 +149,9 @@ export class SignRecognitionService {
     const opts = { ...this.defaultOptions, ...options };
 
     try {
-      const poseData = this.preparePoseData([pose]);
-      return await this.recognizeSignFromPoses(poseData, opts);
+      // Add pose to buffer and attempt recognition
+      this.addPose(pose);
+      return await this.processBuffer(opts);
     } catch (error) {
       console.error("Single pose recognition failed:", error);
       return null;

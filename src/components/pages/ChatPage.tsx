@@ -80,8 +80,8 @@ export default function ChatPage() {
   const handTrackerRef = useRef<HandTrackerRef>(null);
   const wsRef = useRef<WebSocket | null>(null);
 
-  // API configuration
-  const API_BASE_URL = environment.apiBaseUrl; // SignGPT Crew Server
+  // API configuration - use local API routes that proxy to external server
+  const API_BASE_URL = "/api"; // Local Next.js API routes
 
   // Auto-scroll to bottom when new messages are added
   const scrollToBottom = useCallback(() => {
@@ -245,13 +245,39 @@ export default function ChatPage() {
   // WebSocket 연결 (보안 강화된 프록시 방식)
   const connectWebSocket = useCallback(async () => {
     try {
+      console.log("🔄 API 프록시를 통해 WebSocket URL 가져오기 시작...");
+
       // API 프록시를 통해 WebSocket URL 가져오기
-      const proxyResponse = await fetch("/api/websocket-proxy");
+      const apiUrl =
+        process.env.NODE_ENV === "development"
+          ? "http://localhost:3000/api/websocket-proxy"
+          : "/api/websocket-proxy";
+      console.log("🌐 API URL:", apiUrl);
+      const proxyResponse = await fetch(apiUrl, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        cache: "no-cache",
+      });
+      console.log(
+        "📡 프록시 응답 상태:",
+        proxyResponse.status,
+        proxyResponse.statusText
+      );
+
       if (!proxyResponse.ok) {
-        throw new Error("Failed to get WebSocket configuration");
+        throw new Error(
+          `Failed to get WebSocket configuration: ${proxyResponse.status}`
+        );
       }
-      const { webSocketUrl: wsUrl } = await proxyResponse.json();
-      console.log("SignGPT Server에 WebSocket 연결 시도 중...", wsUrl);
+
+      const responseData = await proxyResponse.json();
+      console.log("📦 프록시 응답 데이터:", responseData);
+
+      const { webSocketUrl: wsUrl } = responseData;
+      console.log("🔗 SignGPT Server에 WebSocket 연결 시도 중...", wsUrl);
 
       // SignGPT Server WebSocket 연결
       wsRef.current = new WebSocket(wsUrl);
@@ -388,10 +414,31 @@ export default function ChatPage() {
       };
     } catch (error) {
       console.error("❌ WebSocket 연결 설정 오류:", error);
+
+      // 네트워크 에러 상세 분석
+      if (error instanceof TypeError && error.message.includes("fetch")) {
+        console.error("🌐 네트워크 연결 문제 감지:");
+        console.error("- 서버가 실행 중인지 확인: http://localhost:3000");
+        console.error("- 브라우저 개발자 도구 Network 탭 확인");
+        console.error("- 방화벽이나 프록시 설정 확인");
+      }
+
+      console.error("❌ 에러 상세:", {
+        name: error instanceof Error ? error.name : "Unknown",
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        type: typeof error,
+        constructor: error?.constructor?.name,
+      });
+
       setIsWebSocketConnected(false);
-      setWebSocketError("WebSocket 연결 설정에 실패했습니다.");
+      setWebSocketError(
+        `WebSocket 연결 설정에 실패했습니다: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
     }
-  }, [isWebSocketConnected]);
+  }, []);
 
   // WebSocket 연결 해제
   const disconnectWebSocket = useCallback(() => {
@@ -401,7 +448,7 @@ export default function ChatPage() {
     }
   }, []);
 
-  // WebSocket 연결 초기화
+  // WebSocket 연결 초기화 (한 번만 실행)
   useEffect(() => {
     connectWebSocket();
 
