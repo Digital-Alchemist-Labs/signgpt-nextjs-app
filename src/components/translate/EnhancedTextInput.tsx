@@ -633,7 +633,7 @@ export default function EnhancedTextInput({
 
           // Force active element
           if (document.activeElement !== ta) {
-            (document.activeElement as any)?.blur?.();
+            (document.activeElement as HTMLElement)?.blur?.();
             ta.focus();
           }
         }

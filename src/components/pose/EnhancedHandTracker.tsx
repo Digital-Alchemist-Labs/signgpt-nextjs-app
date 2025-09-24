@@ -3,9 +3,7 @@
 import React, {
   useRef,
   useEffect,
-  useLayoutEffect,
   useState,
-  useCallback,
   forwardRef,
   useImperativeHandle,
 } from "react";
@@ -28,10 +26,10 @@ const HandTracker = forwardRef<HandTrackerRef, HandTrackerProps>(
   ({ onKeypointsDetected, isRecording, showKeypoints = true }, ref) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const handsRef = useRef<any>(null);
+    const handsRef = useRef<unknown>(null);
     const streamRef = useRef<MediaStream | null>(null);
     const animationRef = useRef<number | null>(null);
-    const mediaPipeRef = useRef<any>(null);
+    const mediaPipeRef = useRef<unknown>(null);
     const [isInitialized, setIsInitialized] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isRetrying, setIsRetrying] = useState(false);
@@ -61,15 +59,8 @@ const HandTracker = forwardRef<HandTrackerRef, HandTrackerProps>(
           });
 
           // 더 포괄적인 방식으로 함수 찾기
-          let Holistic,
-            drawConnectors,
-            drawLandmarks,
-            HAND_CONNECTIONS,
-            POSE_CONNECTIONS,
-            FACEMESH_CONTOURS;
-
           // Holistic 클래스 찾기
-          Holistic =
+          const holisticClass =
             holisticModule.Holistic ||
             holisticModule.default?.Holistic ||
             holisticModule.default ||
@@ -77,24 +68,32 @@ const HandTracker = forwardRef<HandTrackerRef, HandTrackerProps>(
               ? holisticModule.default
               : null);
 
+          const Holistic = holisticClass;
+
           // Drawing utilities 찾기
-          drawConnectors =
+          const drawConnectorsFunc =
             drawingUtilsModule.drawConnectors ||
             drawingUtilsModule.default?.drawConnectors;
-          drawLandmarks =
+          const drawConnectors = drawConnectorsFunc;
+          const drawLandmarksFunc =
             drawingUtilsModule.drawLandmarks ||
             drawingUtilsModule.default?.drawLandmarks;
 
+          const drawLandmarks = drawLandmarksFunc;
+
           // Connections 찾기
-          HAND_CONNECTIONS =
+          const handConnections =
             holisticModule.HAND_CONNECTIONS ||
             holisticModule.default?.HAND_CONNECTIONS;
-          POSE_CONNECTIONS =
+          const HAND_CONNECTIONS = handConnections;
+          const poseConnections =
             holisticModule.POSE_CONNECTIONS ||
             holisticModule.default?.POSE_CONNECTIONS;
-          FACEMESH_CONTOURS =
+          const POSE_CONNECTIONS = poseConnections;
+          const facemeshContours =
             holisticModule.FACEMESH_CONTOURS ||
             holisticModule.default?.FACEMESH_CONTOURS;
+          const FACEMESH_CONTOURS = facemeshContours;
 
           if (Holistic && typeof Holistic === "function") {
             mediaPipeRef.current = {
@@ -116,15 +115,15 @@ const HandTracker = forwardRef<HandTrackerRef, HandTrackerProps>(
         }
 
         // 방법 2: window 객체에서 MediaPipe 확인 (CDN 로드된 경우)
-        if (typeof window !== "undefined" && (window as any).Holistic) {
+        if (typeof window !== "undefined" && (window as unknown as Record<string, unknown>).Holistic) {
           console.log("CDN에서 로드된 MediaPipe Holistic 사용");
           mediaPipeRef.current = {
-            Holistic: (window as any).Holistic,
-            drawConnectors: (window as any).drawConnectors,
-            drawLandmarks: (window as any).drawLandmarks,
-            HAND_CONNECTIONS: (window as any).HAND_CONNECTIONS,
-            POSE_CONNECTIONS: (window as any).POSE_CONNECTIONS,
-            FACEMESH_CONTOURS: (window as any).FACEMESH_CONTOURS,
+            Holistic: (window as unknown as Record<string, unknown>).Holistic,
+            drawConnectors: (window as unknown as Record<string, unknown>).drawConnectors,
+            drawLandmarks: (window as unknown as Record<string, unknown>).drawLandmarks,
+            HAND_CONNECTIONS: (window as unknown as Record<string, unknown>).HAND_CONNECTIONS,
+            POSE_CONNECTIONS: (window as unknown as Record<string, unknown>).POSE_CONNECTIONS,
+            FACEMESH_CONTOURS: (window as unknown as Record<string, unknown>).FACEMESH_CONTOURS,
           };
 
           console.log("MediaPipe Holistic 라이브러리 로딩 완료 (CDN)");
@@ -151,7 +150,7 @@ const HandTracker = forwardRef<HandTrackerRef, HandTrackerProps>(
     };
 
     // 키포인트를 리스트로 변환 (카메라 반전에 맞춰 x좌표 반전)
-    const landmarkToList = (landmarks: any) => {
+    const landmarkToList = (landmarks: Array<{x: number; y: number; z?: number}>) => {
       const keypoints: number[] = [];
       for (let i = 0; i < 21; i++) {
         // x 좌표를 반전시켜서 카메라 반전과 일치시킴 (MediaPipe 좌표는 0~1 범위)
@@ -244,16 +243,18 @@ const HandTracker = forwardRef<HandTrackerRef, HandTrackerProps>(
       });
 
       // MediaPipe Holistic 모델 초기화
-      let holistic: any = null;
-      if (mediaPipe.Holistic && typeof mediaPipe.Holistic === "function") {
+      let holistic: unknown = null;
+      const typedMediaPipe = mediaPipe as Record<string, unknown>;
+      if (typedMediaPipe.Holistic && typeof typedMediaPipe.Holistic === "function") {
         console.log("MediaPipe Holistic 모델 초기화 중...");
-        holistic = new mediaPipe.Holistic({
+        holistic = new (typedMediaPipe.Holistic as new (config: unknown) => unknown)({
           locateFile: (file: string) => {
             return `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/${file}`;
           },
         });
 
-        holistic.setOptions({
+        const typedHolistic = holistic as Record<string, unknown>;
+        (typedHolistic.setOptions as (options: Record<string, unknown>) => void)({
           modelComplexity: 1,
           smoothLandmarks: true,
           enableSegmentation: false,
@@ -263,7 +264,7 @@ const HandTracker = forwardRef<HandTrackerRef, HandTrackerProps>(
           minTrackingConfidence: 0.5,
         });
 
-        holistic.onResults((results: any) => {
+        (typedHolistic.onResults as (callback: (results: Record<string, unknown>) => void) => void)((results: Record<string, unknown>) => {
           if (!canvasRef.current || !videoRef.current) return;
 
           const canvas = canvasRef.current;
@@ -277,7 +278,7 @@ const HandTracker = forwardRef<HandTrackerRef, HandTrackerProps>(
           // 비디오 프레임 그리기
           try {
             if (results.image) {
-              ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+              ctx.drawImage(results.image as CanvasImageSource, 0, 0, canvas.width, canvas.height);
             } else if (videoRef.current.readyState >= 2) {
               ctx.drawImage(
                 videoRef.current,
@@ -296,13 +297,13 @@ const HandTracker = forwardRef<HandTrackerRef, HandTrackerProps>(
             // 얼굴 랜드마크 그리기
             if (
               results.faceLandmarks &&
-              mediaPipe.drawConnectors &&
-              mediaPipe.FACEMESH_CONTOURS
+              typedMediaPipe.drawConnectors &&
+              typedMediaPipe.FACEMESH_CONTOURS
             ) {
-              mediaPipe.drawConnectors(
+              (typedMediaPipe.drawConnectors as (ctx: CanvasRenderingContext2D, landmarks: unknown, connections: unknown, options?: unknown) => void)(
                 ctx,
                 results.faceLandmarks,
-                mediaPipe.FACEMESH_CONTOURS,
+                typedMediaPipe.FACEMESH_CONTOURS,
                 {
                   color: "#C0C0C070",
                   lineWidth: 1,
@@ -313,20 +314,20 @@ const HandTracker = forwardRef<HandTrackerRef, HandTrackerProps>(
             // 포즈(상반신) 랜드마크 그리기
             if (
               results.poseLandmarks &&
-              mediaPipe.drawConnectors &&
-              mediaPipe.POSE_CONNECTIONS
+              typedMediaPipe.drawConnectors &&
+              typedMediaPipe.POSE_CONNECTIONS
             ) {
-              mediaPipe.drawConnectors(
+              (typedMediaPipe.drawConnectors as (ctx: CanvasRenderingContext2D, landmarks: unknown, connections: unknown, options?: unknown) => void)(
                 ctx,
                 results.poseLandmarks,
-                mediaPipe.POSE_CONNECTIONS,
+                typedMediaPipe.POSE_CONNECTIONS,
                 {
                   color: "#00CEFF",
                   lineWidth: 2,
                 }
               );
-              if (mediaPipe.drawLandmarks) {
-                mediaPipe.drawLandmarks(ctx, results.poseLandmarks, {
+              if (typedMediaPipe.drawLandmarks) {
+                (typedMediaPipe.drawLandmarks as (ctx: CanvasRenderingContext2D, landmarks: unknown, options?: unknown) => void)(ctx, results.poseLandmarks, {
                   color: "#FF0000",
                   lineWidth: 1,
                   radius: 2,
@@ -337,20 +338,20 @@ const HandTracker = forwardRef<HandTrackerRef, HandTrackerProps>(
             // 손 랜드마크 그리기 (왼손)
             if (
               results.leftHandLandmarks &&
-              mediaPipe.drawConnectors &&
-              mediaPipe.HAND_CONNECTIONS
+              typedMediaPipe.drawConnectors &&
+              typedMediaPipe.HAND_CONNECTIONS
             ) {
-              mediaPipe.drawConnectors(
+              (typedMediaPipe.drawConnectors as (ctx: CanvasRenderingContext2D, landmarks: unknown, connections: unknown, options?: unknown) => void)(
                 ctx,
                 results.leftHandLandmarks,
-                mediaPipe.HAND_CONNECTIONS,
+                typedMediaPipe.HAND_CONNECTIONS,
                 {
                   color: "#CC0000",
                   lineWidth: 2,
                 }
               );
-              if (mediaPipe.drawLandmarks) {
-                mediaPipe.drawLandmarks(ctx, results.leftHandLandmarks, {
+              if (typedMediaPipe.drawLandmarks) {
+                (typedMediaPipe.drawLandmarks as (ctx: CanvasRenderingContext2D, landmarks: unknown, options?: unknown) => void)(ctx, results.leftHandLandmarks, {
                   color: "#00FF00",
                   lineWidth: 1,
                   radius: 3,
@@ -361,20 +362,20 @@ const HandTracker = forwardRef<HandTrackerRef, HandTrackerProps>(
             // 손 랜드마크 그리기 (오른손)
             if (
               results.rightHandLandmarks &&
-              mediaPipe.drawConnectors &&
-              mediaPipe.HAND_CONNECTIONS
+              typedMediaPipe.drawConnectors &&
+              typedMediaPipe.HAND_CONNECTIONS
             ) {
-              mediaPipe.drawConnectors(
+              (typedMediaPipe.drawConnectors as (ctx: CanvasRenderingContext2D, landmarks: unknown, connections: unknown, options?: unknown) => void)(
                 ctx,
                 results.rightHandLandmarks,
-                mediaPipe.HAND_CONNECTIONS,
+                typedMediaPipe.HAND_CONNECTIONS,
                 {
                   color: "#0000CC",
                   lineWidth: 2,
                 }
               );
-              if (mediaPipe.drawLandmarks) {
-                mediaPipe.drawLandmarks(ctx, results.rightHandLandmarks, {
+              if (typedMediaPipe.drawLandmarks) {
+                (typedMediaPipe.drawLandmarks as (ctx: CanvasRenderingContext2D, landmarks: unknown, options?: unknown) => void)(ctx, results.rightHandLandmarks, {
                   color: "#00FF00",
                   lineWidth: 1,
                   radius: 3,
@@ -385,8 +386,8 @@ const HandTracker = forwardRef<HandTrackerRef, HandTrackerProps>(
 
           // 키포인트 추출 및 전송 (손 키포인트만 서버로 전송)
           if (results.leftHandLandmarks && results.rightHandLandmarks) {
-            const leftHand = landmarkToList(results.leftHandLandmarks);
-            const rightHand = landmarkToList(results.rightHandLandmarks);
+            const leftHand = landmarkToList(results.leftHandLandmarks as Array<{x: number; y: number; z?: number}>);
+            const rightHand = landmarkToList(results.rightHandLandmarks as Array<{x: number; y: number; z?: number}>);
             const combinedKeypoints = [...leftHand, ...rightHand];
 
             // 자동 녹화 모드일 때 키포인트 수집
@@ -425,7 +426,8 @@ const HandTracker = forwardRef<HandTrackerRef, HandTrackerProps>(
 
           if (videoRef.current.readyState >= 2) {
             try {
-              await holistic.send({ image: videoRef.current });
+              const holisticTyped = holistic as Record<string, unknown>;
+              await (holisticTyped.send as (data: {image: HTMLVideoElement}) => Promise<void>)({ image: videoRef.current });
             } catch (error) {
               console.error("비디오 프레임 처리 오류:", error);
             }
@@ -476,22 +478,22 @@ const HandTracker = forwardRef<HandTrackerRef, HandTrackerProps>(
           setIsAutoRecording(true);
           lastRecognitionTime.current = Date.now();
           collectedKeypoints.current = [];
-        } catch (err: any) {
+        } catch (err: unknown) {
           console.error("MediaPipe initialization error:", err);
           let errorMessage = "카메라 초기화에 실패했습니다.";
 
-          if (err.name === "NotAllowedError") {
+          if ((err as Error).name === "NotAllowedError") {
             errorMessage =
               "카메라 접근 권한이 거부되었습니다. 브라우저 설정에서 카메라 권한을 허용해주세요.";
-          } else if (err.name === "NotFoundError") {
+          } else if ((err as Error).name === "NotFoundError") {
             errorMessage =
               "카메라를 찾을 수 없습니다. 카메라가 연결되어 있는지 확인해주세요.";
-          } else if (err.name === "NotReadableError") {
+          } else if ((err as Error).name === "NotReadableError") {
             errorMessage = "카메라가 다른 애플리케이션에서 사용 중입니다.";
-          } else if (err.name === "OverconstrainedError") {
+          } else if ((err as Error).name === "OverconstrainedError") {
             errorMessage = "요청한 카메라 설정을 지원하지 않습니다.";
-          } else if (err.message) {
-            errorMessage = err.message;
+          } else if ((err as Error).message) {
+            errorMessage = (err as Error).message;
           }
 
           setError(errorMessage);
@@ -546,21 +548,21 @@ const HandTracker = forwardRef<HandTrackerRef, HandTrackerProps>(
           console.log("카메라 재초기화 시작...");
           setIsRetrying(false);
           await initializeCamera();
-        } catch (err: any) {
+        } catch (err: unknown) {
           console.error("카메라 재시작 실패:", err);
           setIsRetrying(false);
 
           let errorMessage = "카메라 재시작에 실패했습니다.";
-          if (err.name === "NotAllowedError") {
+          if ((err as Error).name === "NotAllowedError") {
             errorMessage =
               "카메라 접근 권한이 거부되었습니다. 브라우저 설정에서 카메라 권한을 허용해주세요.";
-          } else if (err.name === "NotFoundError") {
+          } else if ((err as Error).name === "NotFoundError") {
             errorMessage =
               "카메라를 찾을 수 없습니다. 카메라가 연결되어 있는지 확인해주세요.";
-          } else if (err.name === "NotReadableError") {
+          } else if ((err as Error).name === "NotReadableError") {
             errorMessage = "카메라가 다른 애플리케이션에서 사용 중입니다.";
-          } else if (err.message) {
-            errorMessage = err.message;
+          } else if ((err as Error).message) {
+            errorMessage = (err as Error).message;
           }
 
           setError(errorMessage);

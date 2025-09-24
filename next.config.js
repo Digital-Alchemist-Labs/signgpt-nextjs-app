@@ -160,11 +160,7 @@ const nextConfig = {
 
     return config;
   },
-  // 개발 환경에서는 API Routes 지원을 위해 static export 비활성화
-  ...(process.env.NODE_ENV === "production" && {
-    output: "export",
-    trailingSlash: true,
-  }),
+  // API Routes are needed for the application, so static export is disabled
   // Disable image optimization for static export
   images: {
     unoptimized: true,

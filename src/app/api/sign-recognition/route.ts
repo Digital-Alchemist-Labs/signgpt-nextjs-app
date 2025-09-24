@@ -42,11 +42,16 @@ export async function GET() {
   try {
     const serverConfig = getServerEnvironment();
 
-    // 서버 상태 확인
+    // 서버 상태 확인 (5초 타임아웃)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    
     const response = await fetch(`${serverConfig.signGptClientUrl}/health`, {
       method: "GET",
-      timeout: 5000,
+      signal: controller.signal,
     });
+    
+    clearTimeout(timeoutId);
 
     return NextResponse.json({
       status: response.ok ? "healthy" : "unhealthy",

@@ -46,7 +46,7 @@ export default function VideoCapture() {
           }
         } catch (playError) {
           // Ignore AbortError when component is unmounting
-          if (playError.name !== "AbortError") {
+          if ((playError as Error).name !== "AbortError") {
             console.error("Video play failed:", playError);
           }
         }

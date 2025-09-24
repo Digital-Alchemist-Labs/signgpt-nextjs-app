@@ -17,7 +17,7 @@ export interface SignRecognitionResult {
 }
 
 export class OpenVinoSignRecognitionService {
-  private model: any = null;
+  private model: unknown = null;
   private isLoaded = false;
   private handsKeypointsBuffer: HandKeypoints[] = [];
   private readonly maxBufferSize = 60; // 60 frames as in original
@@ -160,7 +160,7 @@ export class OpenVinoSignRecognitionService {
       }
 
       // Run model inference
-      const output = this.model.predict(inputData);
+      const output = (this.model as {predict: (data: unknown) => number[]}).predict(inputData);
 
       // Apply softmax
       const expOutput = output.map((x: number) =>
