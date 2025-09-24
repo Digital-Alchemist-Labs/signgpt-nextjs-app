@@ -34,26 +34,8 @@ export const metadata: Metadata = {
   referrer: "origin",
   robots: "index, follow",
   manifest: "/manifest.json",
-  icons: {
-    icon: [
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon.ico", sizes: "any" },
-    ],
-    apple: "/apple-touch-icon.png",
-    other: [
-      {
-        rel: "android-chrome",
-        url: "/android-chrome-192x192.png",
-        sizes: "192x192",
-      },
-      {
-        rel: "android-chrome",
-        url: "/android-chrome-512x512.png",
-        sizes: "512x512",
-      },
-    ],
-  },
+  // Icons are automatically handled by Next.js from files in /app directory
+  // favicon.ico, icon1.png, icon2.png, apple-icon.png
   openGraph: {
     title: "SignGPT",
     description:
