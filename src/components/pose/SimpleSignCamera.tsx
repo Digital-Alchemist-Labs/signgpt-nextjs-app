@@ -66,67 +66,152 @@ export const SimpleSignCamera: React.FC<SimpleSignCameraProps> = ({
         // Wait for video to be ready and play
         const playVideo = async () => {
           try {
-            // Wait for loadedmetadata event
-            await new Promise((resolve, reject) => {
-              const timeout = setTimeout(() => {
-                reject(new Error("Video metadata loading timeout"));
-              }, 10000);
+            // Check if video already has metadata
+            if (video.readyState >= 1) {
+              console.log("Video metadata already available:", {
+                width: video.videoWidth,
+                height: video.videoHeight,
+                readyState: video.readyState,
+              });
+            } else {
+              // Wait for loadedmetadata event with improved error handling
+              await new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => {
+                  console.warn(
+                    "Video metadata loading timeout, attempting to continue..."
+                  );
+                  // Don't reject immediately, try to continue if video seems ready
+                  if (video.readyState >= 1 && video.videoWidth > 0) {
+                    console.log(
+                      "Video appears ready despite timeout, continuing..."
+                    );
+                    resolve(undefined);
+                  } else {
+                    reject(new Error("Video metadata loading timeout"));
+                  }
+                }, 15000); // Increased timeout to 15 seconds
 
-              video.onloadedmetadata = () => {
-                clearTimeout(timeout);
-                console.log("Video metadata loaded:", {
-                  width: video.videoWidth,
-                  height: video.videoHeight,
-                  readyState: video.readyState,
-                });
-                resolve(undefined);
-              };
+                video.onloadedmetadata = () => {
+                  clearTimeout(timeout);
+                  console.log("Video metadata loaded:", {
+                    width: video.videoWidth,
+                    height: video.videoHeight,
+                    readyState: video.readyState,
+                  });
+                  resolve(undefined);
+                };
 
-              video.onerror = () => {
-                clearTimeout(timeout);
-                reject(new Error("Video loading error"));
-              };
-            });
+                video.onerror = (event) => {
+                  clearTimeout(timeout);
+                  console.error("Video loading error:", event);
+                  reject(new Error("Video loading error"));
+                };
+
+                // Also listen for canplay event as fallback
+                video.oncanplay = () => {
+                  if (video.videoWidth > 0 && video.videoHeight > 0) {
+                    clearTimeout(timeout);
+                    console.log("Video can play (fallback):", {
+                      width: video.videoWidth,
+                      height: video.videoHeight,
+                      readyState: video.readyState,
+                    });
+                    resolve(undefined);
+                  }
+                };
+              });
+            }
 
             // Ensure video is still in DOM and try to play
             if (document.contains(video)) {
-              await video.play();
-              console.log("Video started playing successfully");
+              try {
+                await video.play();
+                console.log("Video started playing successfully");
 
-              // Verify playback after a short delay
-              setTimeout(() => {
-                if (document.contains(video)) {
-                  console.log("Video playback verification:", {
-                    paused: video.paused,
-                    ended: video.ended,
-                    currentTime: video.currentTime,
-                    readyState: video.readyState,
-                    videoWidth: video.videoWidth,
-                    videoHeight: video.videoHeight,
-                  });
-
-                  // If still paused, try to play again
-                  if (video.paused && !video.ended) {
-                    console.log("Video paused unexpectedly, restarting...");
-                    video.play().catch((error) => {
-                      if (error.name !== "AbortError") {
-                        console.error("Video restart failed:", error);
-                      }
+                // Verify playback after a short delay
+                setTimeout(() => {
+                  if (document.contains(video)) {
+                    console.log("Video playback verification:", {
+                      paused: video.paused,
+                      ended: video.ended,
+                      currentTime: video.currentTime,
+                      readyState: video.readyState,
+                      videoWidth: video.videoWidth,
+                      videoHeight: video.videoHeight,
                     });
+
+                    // If still paused, try to play again
+                    if (video.paused && !video.ended) {
+                      console.log("Video paused unexpectedly, restarting...");
+                      video.play().catch((playError) => {
+                        if (playError.name !== "AbortError") {
+                          console.error("Video restart failed:", playError);
+                        }
+                      });
+                    }
                   }
+                }, 200);
+              } catch (playError) {
+                // Handle different types of play errors
+                const errorName =
+                  playError instanceof Error ? playError.name : "Unknown";
+                if (errorName === "NotAllowedError") {
+                  console.warn(
+                    "Autoplay prevented by browser policy, user interaction required"
+                  );
+                  setError(
+                    "브라우저에서 자동 재생이 차단되었습니다. 화면을 클릭해주세요."
+                  );
+                } else if (errorName === "AbortError") {
+                  console.log("Video play aborted (normal during cleanup)");
+                } else {
+                  console.error("Video play failed:", playError);
+                  setError(
+                    "비디오 재생에 실패했습니다. 카메라를 다시 시도해주세요."
+                  );
                 }
-              }, 200);
+                throw playError;
+              }
             }
           } catch (error) {
-            if (error.name !== "AbortError") {
+            const errorName = error instanceof Error ? error.name : "Unknown";
+            const errorMessage =
+              error instanceof Error ? error.message : String(error);
+            if (errorName !== "AbortError") {
               console.error("Video setup failed:", error);
-              setError("카메라 비디오 재생에 실패했습니다.");
+              if (!errorMessage.includes("자동 재생이 차단")) {
+                setError(
+                  "카메라 비디오 재생에 실패했습니다. 페이지를 새로고침하고 다시 시도해주세요."
+                );
+              }
             }
+            throw error;
           }
         };
 
-        // Start video playback
-        await playVideo();
+        // Start video playback with retry logic
+        let retryCount = 0;
+        const maxRetries = 3;
+
+        while (retryCount < maxRetries) {
+          try {
+            await playVideo();
+            break; // Success, exit retry loop
+          } catch (playError) {
+            retryCount++;
+            console.warn(
+              `Video playback attempt ${retryCount}/${maxRetries} failed:`,
+              playError
+            );
+
+            if (retryCount >= maxRetries) {
+              throw playError; // Re-throw the last error
+            }
+
+            // Wait before retry
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+          }
+        }
       }
 
       setStream(mediaStream);
@@ -136,7 +221,34 @@ export const SimpleSignCamera: React.FC<SimpleSignCameraProps> = ({
       });
     } catch (error) {
       console.error("Failed to start camera:", error);
-      setError("카메라에 접근할 수 없습니다. 권한을 확인해주세요.");
+
+      // Provide more specific error messages
+      const errorName = error instanceof Error ? error.name : "Unknown";
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      if (errorName === "NotAllowedError") {
+        setError(
+          "카메라 접근 권한이 거부되었습니다. 브라우저 설정에서 카메라 권한을 허용해주세요."
+        );
+      } else if (errorName === "NotFoundError") {
+        setError(
+          "카메라를 찾을 수 없습니다. 카메라가 연결되어 있는지 확인해주세요."
+        );
+      } else if (errorName === "NotReadableError") {
+        setError(
+          "카메라가 다른 애플리케이션에서 사용 중입니다. 다른 프로그램을 종료하고 다시 시도해주세요."
+        );
+      } else if (errorMessage.includes("timeout")) {
+        setError(
+          "카메라 초기화 시간이 초과되었습니다. 페이지를 새로고침하고 다시 시도해주세요."
+        );
+      } else if (errorMessage.includes("자동 재생이 차단")) {
+        // Error already set in playVideo function
+      } else {
+        setError(
+          "카메라에 접근할 수 없습니다. 브라우저를 새로고침하고 다시 시도해주세요."
+        );
+      }
     }
   }, [state.isLoaded, loadModel]);
 
@@ -216,15 +328,17 @@ export const SimpleSignCamera: React.FC<SimpleSignCameraProps> = ({
       }
     } catch (error) {
       // Native 에러는 조용히 무시 (MediaPipe 관련 에러)
-      if (error?.message && error.message.includes("abort")) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      if (errorMessage && errorMessage.includes("abort")) {
         console.warn("MediaPipe processing aborted, skipping frame");
         return;
       }
 
       // Check for ROI dimension errors specifically
       if (
-        error?.message &&
-        error.message.includes("ROI width and height must be > 0")
+        errorMessage &&
+        errorMessage.includes("ROI width and height must be > 0")
       ) {
         console.warn("MediaPipe ROI dimension error, video not ready yet");
         return;
@@ -313,7 +427,21 @@ export const SimpleSignCamera: React.FC<SimpleSignCameraProps> = ({
         {error && (
           <div className="absolute inset-0 flex items-center justify-center bg-red-500/10">
             <div className="text-center text-red-500 p-4">
-              <p className="text-sm">{error}</p>
+              <p className="text-sm mb-3">{error}</p>
+              <button
+                onClick={() => {
+                  setError(null);
+                  if (stream) {
+                    stopCamera();
+                  }
+                  setTimeout(() => {
+                    startCamera();
+                  }, 500);
+                }}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                카메라 재시작
+              </button>
             </div>
           </div>
         )}

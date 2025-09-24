@@ -311,44 +311,99 @@ export default function EnhancedTextInput({
   }, []);
 
   const handleFocus = useCallback(() => {
+    console.log("🎯 [EnhancedTextInput] Focus gained");
     hadFocusRef.current = true;
+
+    // Add a focus protection mechanism
+    const ta = textareaRef.current;
+    if (ta) {
+      // Override the blur method temporarily
+      const originalBlur = ta.blur;
+      ta.blur = function () {
+        console.log("🚫 [EnhancedTextInput] Blur attempt BLOCKED!");
+        // Don't actually blur - just log it
+        return;
+      };
+
+      // Restore original blur after some time (for intentional blurs)
+      setTimeout(() => {
+        if (ta) {
+          ta.blur = originalBlur;
+        }
+      }, 100);
+    }
   }, []);
 
   // Track user-initiated pointer interactions to allow intentional blur
   useEffect(() => {
-    const onPointerDown = (e: PointerEvent) => {
-      const ta = textareaRef.current;
-      if (!ta) return;
-      // Allow blur only if pointer is outside textarea
-      allowBlurRef.current = !ta.contains(e.target as Node);
+    const preventFocusSteal = (e: FocusEvent) => {
+      if (hadFocusRef.current) {
+        const ta = textareaRef.current;
+        const target = e.target as HTMLElement;
+
+        if (ta && target !== ta && !ta.contains(target)) {
+          console.log(
+            "🚨 [EnhancedTextInput] PREVENTING focus steal by:",
+            target.tagName,
+            target.className
+          );
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+
+          // Force focus back to textarea
+          setTimeout(() => {
+            if (ta && hadFocusRef.current) {
+              ta.focus();
+              console.log(
+                "🔒 [EnhancedTextInput] Focus FORCED back to textarea"
+              );
+            }
+          }, 0);
+
+          return false;
+        }
+      }
     };
-    const onPointerUp = () => {
-      // Reset after interaction
-      allowBlurRef.current = false;
-    };
-    window.addEventListener("pointerdown", onPointerDown, true);
-    window.addEventListener("pointerup", onPointerUp, true);
+
+    // Capture all focus events globally
+    document.addEventListener("focusin", preventFocusSteal, true);
+    document.addEventListener("focus", preventFocusSteal, true);
+
     return () => {
-      window.removeEventListener("pointerdown", onPointerDown, true);
-      window.removeEventListener("pointerup", onPointerUp, true);
+      document.removeEventListener("focusin", preventFocusSteal, true);
+      document.removeEventListener("focus", preventFocusSteal, true);
     };
   }, []);
 
   const handleBlur = useCallback(
     (e?: React.FocusEvent<HTMLTextAreaElement>) => {
+      console.log("🔍 [EnhancedTextInput] Blur event triggered", {
+        relatedTarget: e?.relatedTarget,
+        allowBlur: allowBlurRef.current,
+        hadFocus: hadFocusRef.current,
+      });
+
       // Prevent unintended blur (e.g., due to background updates)
       const movingTo = e?.relatedTarget as HTMLElement | null;
       const intentional = allowBlurRef.current || !!movingTo;
-      if (!intentional) {
-        hadFocusRef.current = true;
-        const ta = textareaRef.current;
-        if (ta) {
-          requestAnimationFrame(() => {
-            try {
-              ta.focus();
-            } catch {}
-          });
-        }
+
+      if (!intentional && hadFocusRef.current) {
+        console.log(
+          "🔄 [EnhancedTextInput] Restoring focus after unintended blur"
+        );
+
+        // Simple, reliable focus restoration
+        requestAnimationFrame(() => {
+          const ta = textareaRef.current;
+          if (ta && document.activeElement !== ta && hadFocusRef.current) {
+            ta.focus();
+            console.log("✅ [EnhancedTextInput] Focus restored");
+          }
+        });
+      } else {
+        console.log("✅ [EnhancedTextInput] Intentional blur - allowing");
+        hadFocusRef.current = false;
       }
     },
     []
@@ -359,11 +414,43 @@ export default function EnhancedTextInput({
     if (hadFocusRef.current && !isComposingRef.current) {
       const ta = textareaRef.current;
       if (ta && document.activeElement !== ta) {
-        requestAnimationFrame(() => {
+        console.log(
+          "🔄 [EnhancedTextInput] Restoring focus due to state change"
+        );
+
+        // Use multiple aggressive strategies to restore focus
+        const restoreFocus = () => {
           try {
-            ta.focus();
-          } catch {}
-        });
+            if (ta && document.activeElement !== ta && hadFocusRef.current) {
+              ta.focus();
+              console.log("✅ [EnhancedTextInput] Focus restored successfully");
+              return true;
+            }
+          } catch (error) {
+            console.error(
+              "❌ [EnhancedTextInput] Failed to restore focus:",
+              error
+            );
+          }
+          return false;
+        };
+
+        // Try immediate restoration
+        if (!restoreFocus()) {
+          // Try with requestAnimationFrame
+          requestAnimationFrame(() => {
+            if (!restoreFocus()) {
+              // Try with multiple timeouts for different scenarios
+              [1, 5, 10, 20, 50, 100].forEach((delay) => {
+                setTimeout(() => {
+                  if (document.activeElement !== ta && hadFocusRef.current) {
+                    restoreFocus();
+                  }
+                }, delay);
+              });
+            }
+          });
+        }
       }
     }
   }, [
@@ -371,7 +458,219 @@ export default function EnhancedTextInput({
     state.signedLanguageVideo,
     state.videoUrl,
     state.isTranslating,
+    // Remove spokenLanguageText to prevent re-renders during typing
   ]);
+
+  // Use MutationObserver to detect DOM changes that might affect focus
+  useEffect(() => {
+    if (!hadFocusRef.current) return;
+
+    const observer = new MutationObserver((mutations) => {
+      if (hadFocusRef.current && !isComposingRef.current) {
+        const ta = textareaRef.current;
+        const currentFocus = document.activeElement;
+
+        // Log current focus state for debugging
+        console.log("🔍 [EnhancedTextInput] DOM mutation detected", {
+          currentActiveElement: currentFocus?.tagName,
+          currentActiveElementClass: currentFocus?.className,
+          textareaStillFocused: currentFocus === ta,
+          hadFocus: hadFocusRef.current,
+        });
+
+        if (ta && currentFocus !== ta) {
+          console.log(
+            "🔄 [EnhancedTextInput] DOM mutation detected - restoring focus"
+          );
+
+          // AGGRESSIVE focus restoration - try immediately
+          try {
+            ta.focus();
+            console.log("✅ [EnhancedTextInput] IMMEDIATE focus restored");
+          } catch (error) {
+            console.error(
+              "❌ [EnhancedTextInput] IMMEDIATE focus failed:",
+              error
+            );
+          }
+
+          // Multiple backup strategies with different timings
+          requestAnimationFrame(() => {
+            if (document.activeElement !== ta && hadFocusRef.current) {
+              try {
+                ta.focus();
+                console.log(
+                  "✅ [EnhancedTextInput] requestAnimationFrame focus restored"
+                );
+              } catch (error) {
+                console.error(
+                  "❌ [EnhancedTextInput] requestAnimationFrame focus failed:",
+                  error
+                );
+              }
+            }
+          });
+
+          setTimeout(() => {
+            if (document.activeElement !== ta && hadFocusRef.current) {
+              try {
+                ta.focus();
+                console.log(
+                  "✅ [EnhancedTextInput] setTimeout(1ms) focus restored"
+                );
+              } catch (error) {
+                console.error(
+                  "❌ [EnhancedTextInput] setTimeout(1ms) focus failed:",
+                  error
+                );
+              }
+            }
+          }, 1);
+
+          setTimeout(() => {
+            if (document.activeElement !== ta && hadFocusRef.current) {
+              try {
+                ta.focus();
+                console.log(
+                  "✅ [EnhancedTextInput] setTimeout(5ms) focus restored"
+                );
+              } catch (error) {
+                console.error(
+                  "❌ [EnhancedTextInput] setTimeout(5ms) focus failed:",
+                  error
+                );
+              }
+            }
+          }, 5);
+
+          setTimeout(() => {
+            if (document.activeElement !== ta && hadFocusRef.current) {
+              try {
+                ta.focus();
+                console.log(
+                  "✅ [EnhancedTextInput] setTimeout(10ms) focus restored"
+                );
+              } catch (error) {
+                console.error(
+                  "❌ [EnhancedTextInput] setTimeout(10ms) focus failed:",
+                  error
+                );
+              }
+            }
+          }, 10);
+
+          setTimeout(() => {
+            if (document.activeElement !== ta && hadFocusRef.current) {
+              try {
+                ta.focus();
+                console.log(
+                  "✅ [EnhancedTextInput] setTimeout(20ms) focus restored"
+                );
+              } catch (error) {
+                console.error(
+                  "❌ [EnhancedTextInput] setTimeout(20ms) focus failed:",
+                  error
+                );
+              }
+            }
+          }, 20);
+
+          setTimeout(() => {
+            if (document.activeElement !== ta && hadFocusRef.current) {
+              try {
+                ta.focus();
+                console.log(
+                  "✅ [EnhancedTextInput] setTimeout(50ms) focus restored"
+                );
+              } catch (error) {
+                console.error(
+                  "❌ [EnhancedTextInput] setTimeout(50ms) focus failed:",
+                  error
+                );
+              }
+            }
+          }, 50);
+        }
+      }
+    });
+
+    // Observe the document for changes that might affect focus
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["style", "class"],
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [hadFocusRef.current]);
+
+  // ULTIMATE NUCLEAR OPTION: Constant focus monitoring
+  useEffect(() => {
+    let focusGuard: NodeJS.Timeout;
+
+    if (hadFocusRef.current) {
+      console.log("🚨 [EnhancedTextInput] ACTIVATING ULTIMATE FOCUS GUARD!");
+
+      focusGuard = setInterval(() => {
+        const ta = textareaRef.current;
+        if (ta && document.activeElement !== ta && hadFocusRef.current) {
+          console.log("💀 [EnhancedTextInput] ULTIMATE GUARD: FORCING FOCUS!");
+
+          // Try EVERYTHING at once
+          ta.focus();
+          ta.click();
+          ta.select();
+
+          // Also try setting selection
+          try {
+            const start = ta.selectionStart;
+            const end = ta.selectionEnd;
+            ta.setSelectionRange(start, end);
+          } catch {}
+
+          // Force active element
+          if (document.activeElement !== ta) {
+            (document.activeElement as any)?.blur?.();
+            ta.focus();
+          }
+        }
+      }, 16); // 60fps monitoring
+    }
+
+    return () => {
+      if (focusGuard) {
+        clearInterval(focusGuard);
+      }
+    };
+  });
+
+  // Also add a visibility change listener
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && hadFocusRef.current) {
+        const ta = textareaRef.current;
+        if (ta) {
+          console.log("👁️ [EnhancedTextInput] Page visible - ensuring focus");
+          setTimeout(() => {
+            if (ta && hadFocusRef.current) {
+              ta.focus();
+            }
+          }, 100);
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleVisibilityChange);
+    };
+  }, []);
 
   // Speech recognition controls
   const startListening = useCallback(() => {
@@ -451,6 +750,7 @@ export default function EnhancedTextInput({
       {/* Main input area */}
       <div className="relative">
         <textarea
+          key="enhanced-text-input-stable" // Stable key to prevent React from recreating the element
           ref={textareaRef}
           value={localText}
           onChange={handleTextChange}
@@ -460,6 +760,10 @@ export default function EnhancedTextInput({
           onCompositionEnd={handleCompositionEnd}
           onFocus={handleFocus}
           onBlur={handleBlur}
+          onFocusCapture={(e) => {
+            console.log("🎯 [EnhancedTextInput] Focus capture event");
+            hadFocusRef.current = true;
+          }}
           placeholder={placeholder}
           maxLength={maxLength}
           className={`w-full px-4 py-4 pr-16 text-lg border rounded-lg resize-none transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary ${
@@ -467,7 +771,27 @@ export default function EnhancedTextInput({
               ? "border-destructive bg-destructive/10"
               : "border-input bg-background"
           } text-foreground placeholder-muted-foreground`}
-          style={{ minHeight: "80px", maxHeight: "300px" }}
+          style={{
+            minHeight: "80px",
+            maxHeight: "300px",
+            // Force focus styles to always be visible
+            outline: hadFocusRef.current
+              ? "2px solid hsl(var(--primary))"
+              : "none",
+            borderColor: hadFocusRef.current
+              ? "hsl(var(--primary))"
+              : undefined,
+          }}
+          // Additional attributes to prevent focus loss
+          autoComplete="off"
+          spellCheck={false}
+          autoCorrect="off"
+          autoCapitalize="off"
+          tabIndex={hadFocusRef.current ? 0 : -1}
+          aria-expanded="true"
+          role="textbox"
+          contentEditable="true"
+          suppressContentEditableWarning={true}
           data-sign-text="text input"
           data-sign-category="input"
           data-sign-description="Text input area for entering text to translate to sign language"

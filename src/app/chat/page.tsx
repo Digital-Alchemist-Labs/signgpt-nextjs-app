@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import MainLayout from "@/components/layout/MainLayout";
-import EnhancedChatPage from "@/components/pages/EnhancedChatPage";
+import ChatPage from "@/components/pages/ChatPage";
 
 export default function ChatPageRoute() {
   const { i18n } = useTranslation();
@@ -47,7 +47,7 @@ export default function ChatPageRoute() {
 
   return (
     <MainLayout>
-      <EnhancedChatPage />
+      <ChatPage />
     </MainLayout>
   );
 }

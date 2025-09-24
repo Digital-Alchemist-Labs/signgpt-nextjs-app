@@ -42,10 +42,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
   }, [t]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 text-foreground">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 text-foreground pb-16">
       <Header />
       <main className="flex-1 animate-fade-in">{children}</main>
-      {isMainPage && <TabBar />}
+      <TabBar />
       <SignHover
         config={{
           enabled: settings.signHoverEnabled,

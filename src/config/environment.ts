@@ -69,6 +69,9 @@ const defaultConfig: EnvironmentConfig = {
     process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_GS || "gs://sign-mt-assets",
   signGptClientUrl:
     process.env.NEXT_PUBLIC_SIGNGPT_CLIENT_URL || "http://localhost:8001",
+  apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8001",
+  webSocketUrl:
+    process.env.NEXT_PUBLIC_WEBSOCKET_URL || "ws://localhost:8000/ws",
 
   // MediaPipe Configuration
   mediaPipeModelPath:

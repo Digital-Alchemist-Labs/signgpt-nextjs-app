@@ -45,7 +45,11 @@ The sign recognition functionality allows users to input messages using sign lan
 Set the following environment variable to configure the SignGPT Client API:
 
 ```bash
+# For local development
 NEXT_PUBLIC_SIGNGPT_CLIENT_URL=http://localhost:8001
+
+# For production, set your actual server URL in .env.local
+NEXT_PUBLIC_SIGNGPT_CLIENT_URL=your_production_server_url_here
 ```
 
 #### API Endpoints

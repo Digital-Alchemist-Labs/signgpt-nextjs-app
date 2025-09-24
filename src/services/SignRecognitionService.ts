@@ -43,8 +43,9 @@ export class SignRecognitionService {
     // Use SignGPT API URL for LLM processing
     this.apiBaseUrl =
       apiBaseUrl ||
+      environment.apiBaseUrl ||
       environment.signGptClientUrl ||
-      "https://emotional-candide-kyokyo-a75699ed.koyeb.app"; // Changed to 8000 as in original
+      "http://localhost:8001"; // Fallback to localhost
 
     // Initialize OpenVINO service
     this.openVinoService = new OpenVinoSignRecognitionService();

@@ -296,22 +296,57 @@ export const PoseViewer: React.FC<PoseViewerProps> = ({
             display: "block",
           }}
           tabIndex={-1}
-          onFocusCapture={() => {
+          onFocus={(e: unknown) => {
+            console.log("🚫 [PoseViewer] Focus event - preventing focus");
             try {
+              (e as Event).preventDefault?.();
               const el = poseViewerRef.current as unknown as {
                 blur?: () => void;
               } | null;
               el?.blur?.();
-            } catch {}
+              // Also blur the document body to prevent focus stealing
+              (document.activeElement as HTMLElement)?.blur?.();
+            } catch (error) {
+              console.error("❌ [PoseViewer] Failed to prevent focus:", error);
+            }
           }}
-          onPointerDown={(e: unknown) => {
+          onFocusCapture={(e: unknown) => {
+            console.log(
+              "🚫 [PoseViewer] Focus capture event - preventing focus"
+            );
             try {
               (e as Event).preventDefault?.();
+              (e as Event).stopPropagation?.();
+              const el = poseViewerRef.current as unknown as {
+                blur?: () => void;
+              } | null;
+              el?.blur?.();
+            } catch (error) {
+              console.error(
+                "❌ [PoseViewer] Failed to prevent focus capture:",
+                error
+              );
+            }
+          }}
+          onPointerDown={(e: unknown) => {
+            console.log("🚫 [PoseViewer] Pointer down - preventing default");
+            try {
+              (e as Event).preventDefault?.();
+              (e as Event).stopPropagation?.();
             } catch {}
           }}
           onMouseDown={(e: unknown) => {
+            console.log("🚫 [PoseViewer] Mouse down - preventing default");
             try {
               (e as Event).preventDefault?.();
+              (e as Event).stopPropagation?.();
+            } catch {}
+          }}
+          onClick={(e: unknown) => {
+            console.log("🚫 [PoseViewer] Click - preventing default");
+            try {
+              (e as Event).preventDefault?.();
+              (e as Event).stopPropagation?.();
             } catch {}
           }}
         />
