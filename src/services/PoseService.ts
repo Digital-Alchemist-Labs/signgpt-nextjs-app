@@ -90,22 +90,34 @@ export class PoseService {
       throw error;
     }
 
-    (this.model as {setOptions: (options: Record<string, unknown>) => void}).setOptions({
+    (
+      this.model as { setOptions: (options: Record<string, unknown>) => void }
+    ).setOptions({
       upperBodyOnly: false,
       modelComplexity: 1,
     });
 
-    await (this.model as {initialize: () => Promise<void>}).initialize();
+    await (this.model as { initialize: () => Promise<void> }).initialize();
 
     // Send an empty frame, to force the mediapipe computation graph to load
     const frame = document.createElement("canvas");
     frame.width = 256;
     frame.height = 256;
-    await (this.model as {send: (data: {image: HTMLCanvasElement | HTMLVideoElement | HTMLImageElement}) => Promise<void>}).send({ image: frame });
+    await (
+      this.model as {
+        send: (data: {
+          image: HTMLCanvasElement | HTMLVideoElement | HTMLImageElement;
+        }) => Promise<void>;
+      }
+    ).send({ image: frame });
     frame.remove();
 
     // Track following results
-    (this.model as {onResults: (callback: (results: HolisticResults) => void) => void}).onResults((results: HolisticResults) => {
+    (
+      this.model as {
+        onResults: (callback: (results: HolisticResults) => void) => void;
+      }
+    ).onResults((results: HolisticResults) => {
       for (const callback of this.onResultsCallbacks) {
         callback(results);
       }
@@ -118,7 +130,13 @@ export class PoseService {
     // const frameType = this.isFirstFrame ? "first-frame" : "frame"; // Unused for now
     // Note: Original project had Google Analytics tracing here
     this.isFirstFrame = false;
-    return (this.model as {send: (data: {image: HTMLVideoElement | HTMLImageElement}) => Promise<void>}).send({ image: video });
+    return (
+      this.model as {
+        send: (data: {
+          image: HTMLVideoElement | HTMLImageElement;
+        }) => Promise<void>;
+      }
+    ).send({ image: video });
   }
 
   drawBody(landmarks: PoseLandmark[], ctx: CanvasRenderingContext2D): void {

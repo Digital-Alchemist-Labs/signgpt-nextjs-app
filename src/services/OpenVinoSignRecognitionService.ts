@@ -160,7 +160,9 @@ export class OpenVinoSignRecognitionService {
       }
 
       // Run model inference
-      const output = (this.model as {predict: (data: unknown) => number[]}).predict(inputData);
+      const output = (
+        this.model as { predict: (data: unknown) => number[] }
+      ).predict(inputData);
 
       // Apply softmax
       const expOutput = output.map((x: number) =>
@@ -220,4 +222,3 @@ export class OpenVinoSignRecognitionService {
 }
 
 export default OpenVinoSignRecognitionService;
-
