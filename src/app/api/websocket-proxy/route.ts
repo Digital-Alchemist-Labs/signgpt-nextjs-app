@@ -26,11 +26,18 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error("❌ Failed to get WebSocket proxy info:", error);
+    console.warn("⚠️ WebSocket server configuration not available:", error);
     return NextResponse.json(
-      { error: "Failed to get WebSocket configuration" },
       {
-        status: 500,
+        error: "WebSocket server not available",
+        webSocketUrl: null,
+        isConnected: false,
+        message:
+          "WebSocket functionality is currently unavailable. Chat will work in basic mode.",
+        timestamp: new Date().toISOString(),
+      },
+      {
+        status: 503, // Service Unavailable instead of 500
         headers: {
           "Content-Type": "application/json",
         },

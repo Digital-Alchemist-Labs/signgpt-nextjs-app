@@ -18,6 +18,146 @@
     "edit": "편집",
     "close": "닫기",
     "home": "홈",
+    "chat": "채팅",
     "settings": "설정"
+  },
+  "chat": {
+    "Enhanced Chat": "향상된 채팅",
+    "title": "채팅",
+    "description": "SignGPT AI 어시스턴트와 채팅하기",
+    "close": "닫기",
+    "switchToEnhanced": "향상된 보기로 전환",
+    "retry": "마지막 메시지 다시 시도",
+    "clear": "채팅 지우기",
+    "placeholder": "여기에 메시지를 입력하세요...",
+    "send": "메시지 보내기",
+    "serverConnected": "서버 연결됨",
+    "serverDisconnected": "서버 연결 끊김",
+    "connectionFailed": "연결 실패",
+    "failedToGenerate": "수화 생성 실패"
+  },
+  "settings": {
+    "title": "설정",
+    "description": "이 설정으로 SignGPT 경험을 맞춤 설정하세요.",
+    "appearance": {
+      "title": "외관",
+      "theme": "테마",
+      "themeDescription": "선호하는 색상 구성표를 선택하세요",
+      "light": "밝은 테마",
+      "dark": "어두운 테마",
+      "system": "시스템 설정"
+    },
+    "languages": {
+      "title": "언어",
+      "interface": "인터페이스 언어",
+      "interfaceDescription": "앱 인터페이스 언어",
+      "signLanguage": "수화",
+      "signLanguageDescription": "번역을 위한 기본 수화",
+      "spokenLanguage": "음성 언어",
+      "spokenLanguageDescription": "번역을 위한 대상 음성 언어"
+    },
+    "video": {
+      "title": "비디오 및 카메라",
+      "enableVideo": "비디오 입력 활성화",
+      "enableVideoDescription": "수화 감지를 위해 앱이 카메라에 액세스할 수 있도록 허용",
+      "detectSign": "수화 감지",
+      "detectSignDescription": "수화 제스처를 자동으로 감지하고 분석"
+    },
+    "visualization": {
+      "title": "시각화",
+      "drawPose": "자세 랜드마크 그리기",
+      "drawPoseDescription": "비디오에서 자세 감지 포인트 표시",
+      "drawSignWriting": "수화 문자 그리기",
+      "drawSignWritingDescription": "수화 문자 표기법 표시",
+      "poseViewer": "자세 뷰어 유형",
+      "poseViewerDescription": "자세 데이터 표시 방법 선택",
+      "poseLandmarks": "자세 랜드마크",
+      "avatar3d": "3D 아바타"
+    },
+    "accessibility": {
+      "title": "접근성",
+      "description": "SignGPT는 접근성을 고려하여 설계되었습니다. 추가 접근성 기능은 향후 업데이트에서 추가될 예정입니다."
+    },
+    "footer": {
+      "title": "SignGPT - AI 기반 수화 번역",
+      "autoSave": "설정이 자동으로 저장됩니다"
+    }
+  },
+  "instructions": {
+    "title": "사용 방법",
+    "home": {
+      "title": "수화 번역 사용법",
+      "steps": [
+        "카메라를 켜고 수화 감지를 활성화하세요",
+        "카메라 앞에서 수화를 해보세요",
+        "AI가 자동으로 수화를 인식하고 번역합니다",
+        "번역된 텍스트와 수화 비디오를 확인하세요",
+        "설정에서 언어와 테마를 변경할 수 있습니다"
+      ]
+    },
+    "chat": {
+      "title": "AI 채팅 사용법",
+      "steps": [
+        "메시지를 입력하여 AI와 대화를 시작하세요",
+        "AI 응답을 수화 비디오로 확인하세요",
+        "채팅 기록은 자동으로 저장됩니다",
+        "설정에서 언어를 변경할 수 있습니다"
+      ]
+    },
+    "settings": {
+      "title": "설정 사용법",
+      "steps": [
+        "외관 설정에서 테마를 변경하세요",
+        "언어 설정에서 인터페이스 언어를 선택하세요",
+        "비디오 설정에서 카메라 권한을 허용하세요",
+        "시각화 설정으로 자세 표시를 조정하세요",
+        "모든 설정은 자동으로 저장됩니다"
+      ]
+    }
+  },
+  "ui": {
+    "expand": "펼치기",
+    "collapse": "접기",
+    "close": "닫기",
+    "steps": "단계"
+  },
+  "notice": {
+    "aslOnly": "현재 미국 수화(ASL)만 지원됩니다"
+  },
+  "about": {
+    "title": "SignGPT 소개",
+    "description": "SignGPT와 우리의 미션에 대해 자세히 알아보세요",
+    "mission": {
+      "title": "우리의 미션",
+      "content": "SignGPT는 실시간 수화 번역을 제공하여 소통의 장벽을 허무는 AI 기반 플랫폼입니다. 우리는 청력 능력에 관계없이 모든 사람이 소통할 수 있도록 하는 것을 믿습니다."
+    },
+    "features": {
+      "title": "주요 기능",
+      "realTime": "실시간 수화 인식 및 번역",
+      "aiPowered": "정확한 번역을 위한 최첨단 AI 모델",
+      "multiPlatform": "데스크톱 및 모바일 기기에서 사용 가능",
+      "accessibility": "접근성을 고려한 설계",
+      "openSource": "오픈 소스 및 커뮤니티 중심"
+    },
+    "technology": {
+      "title": "기술",
+      "content": "SignGPT는 고급 머신러닝 모델과 컴퓨터 비전을 사용하여 수화 제스처를 인식하고 음성 언어로 번역합니다. 다양한 수화 스타일에서 정확성을 보장하기 위해 다양한 데이터셋으로 모델을 훈련했습니다."
+    },
+    "team": {
+      "title": "팀",
+      "content": "SignGPT는 소통을 더욱 포용적으로 만들기 위해 헌신하는 연구자, 개발자, 접근성 옹호자들로 구성된 열정적인 팀에 의해 개발되었습니다."
+    },
+    "support": {
+      "title": "지원 언어",
+      "asl": "미국 수화(ASL)",
+      "more": "더 많은 수화 언어가 곧 추가될 예정입니다"
+    },
+    "contribute": {
+      "title": "참여하기",
+      "content": "SignGPT는 오픈 소스 프로젝트입니다. 개발자, 연구자, 그리고 청각 장애인 및 난청 커뮤니티의 기여를 환영합니다.",
+      "github": "GitHub에서 보기",
+      "feedback": "피드백 제공",
+      "donate": "프로젝트 후원"
+    }
   }
 }

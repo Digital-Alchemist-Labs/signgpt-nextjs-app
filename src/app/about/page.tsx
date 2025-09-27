@@ -5,9 +5,9 @@ import { useTranslation } from "react-i18next";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import MainLayout from "@/components/layout/MainLayout";
-import ChatPage from "@/components/pages/ChatPage";
+import AboutPage from "@/components/pages/AboutPage";
 
-export default function ChatPageRoute() {
+export default function About() {
   const { i18n, t } = useTranslation();
   const { settings } = useSettings();
   const { resolvedTheme } = useTheme();
@@ -33,18 +33,18 @@ export default function ChatPageRoute() {
     }
 
     // Update document title
-    document.title = t("chat.title") + " - " + t("translate.title");
+    document.title = t("about.title") + " - " + t("translate.title");
 
     // Update meta description
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
-      metaDescription.setAttribute("content", t("chat.description"));
+      metaDescription.setAttribute("content", t("about.description"));
     }
   }, [settings.language, i18n, resolvedTheme, t]);
 
   return (
     <MainLayout>
-      <ChatPage />
+      <AboutPage />
     </MainLayout>
   );
 }

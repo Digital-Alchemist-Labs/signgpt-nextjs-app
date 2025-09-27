@@ -2,8 +2,9 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Send, RotateCcw, Trash2, Play, Square, RefreshCw } from "lucide-react";
-// import { useTranslation } from "react-i18next"; // Unused for now
-// import { useSettings } from "@/contexts/SettingsContext"; // Unused for now
+import { useTranslation } from "react-i18next";
+import { useSettings } from "@/contexts/SettingsContext";
+import { safeFetch } from "@/lib/errorHandler";
 import { TranslationService } from "@/services/TranslationService";
 import { PoseViewer } from "@/components/pose/PoseViewer";
 import { environment } from "@/config/environment";
@@ -30,8 +31,8 @@ interface ChatResponse {
 }
 
 export default function ChatPage() {
-  // const { t } = useTranslation(); // Unused for now
-  // const { settings } = useSettings(); // Unused for now
+  const { t } = useTranslation();
+  const { settings } = useSettings();
 
   // UI Mode state
   type UiMode = "original" | "enhanced";
@@ -253,14 +254,29 @@ export default function ChatPage() {
           ? "http://localhost:3000/api/websocket-proxy"
           : "/api/websocket-proxy";
       console.log("🌐 API URL:", apiUrl);
-      const proxyResponse = await fetch(apiUrl, {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        cache: "no-cache",
-      });
+
+      let proxyResponse;
+      try {
+        proxyResponse = await safeFetch(apiUrl, {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          cache: "no-cache",
+        });
+      } catch (fetchError) {
+        console.warn(
+          "⚠️ WebSocket 프록시 서버에 연결할 수 없습니다. 채팅 기능은 제한적으로 작동합니다."
+        );
+        console.warn("fetchError:", fetchError);
+        setIsWebSocketConnected(false);
+        setWebSocketError(
+          "WebSocket 서버를 사용할 수 없습니다. 기본 채팅 모드로 작동합니다."
+        );
+        return; // 에러를 던지지 않고 조용히 반환
+      }
+
       console.log(
         "📡 프록시 응답 상태:",
         proxyResponse.status,
@@ -268,9 +284,20 @@ export default function ChatPage() {
       );
 
       if (!proxyResponse.ok) {
-        throw new Error(
-          `Failed to get WebSocket configuration: ${proxyResponse.status}`
+        if (proxyResponse.status === 503) {
+          console.info(
+            "ℹ️ WebSocket 서비스를 사용할 수 없습니다. 기본 모드로 작동합니다."
+          );
+        } else {
+          console.warn(
+            "⚠️ WebSocket 설정을 가져올 수 없습니다. 기본 모드로 작동합니다."
+          );
+        }
+        setIsWebSocketConnected(false);
+        setWebSocketError(
+          "WebSocket 서비스를 사용할 수 없습니다. 기본 채팅 모드로 작동합니다."
         );
+        return;
       }
 
       const responseData = await proxyResponse.json();
@@ -413,29 +440,23 @@ export default function ChatPage() {
         }
       };
     } catch (error) {
-      console.error("❌ WebSocket 연결 설정 오류:", error);
+      console.warn("⚠️ WebSocket 연결 설정 중 오류가 발생했습니다:", error);
 
-      // 네트워크 에러 상세 분석
+      // 네트워크 에러일 경우 조용히 처리
       if (error instanceof TypeError && error.message.includes("fetch")) {
-        console.error("🌐 네트워크 연결 문제 감지:");
-        console.error("- 서버가 실행 중인지 확인: http://localhost:3000");
-        console.error("- 브라우저 개발자 도구 Network 탭 확인");
-        console.error("- 방화벽이나 프록시 설정 확인");
+        console.warn(
+          "ℹ️ WebSocket 서버를 사용할 수 없습니다. 기본 채팅 모드로 작동합니다."
+        );
+      } else {
+        console.warn("⚠️ WebSocket 연결 오류 상세:", {
+          name: error instanceof Error ? error.name : "Unknown",
+          message: error instanceof Error ? error.message : String(error),
+        });
       }
-
-      console.error("❌ 에러 상세:", {
-        name: error instanceof Error ? error.name : "Unknown",
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        type: typeof error,
-        constructor: error?.constructor?.name,
-      });
 
       setIsWebSocketConnected(false);
       setWebSocketError(
-        `WebSocket 연결 설정에 실패했습니다: ${
-          error instanceof Error ? error.message : String(error)
-        }`
+        "WebSocket 서버에 연결할 수 없습니다. 기본 채팅 모드로 작동합니다."
       );
     }
   }, []);
@@ -489,7 +510,7 @@ export default function ChatPage() {
 
     try {
       console.log("🌐 Sending request to:", `${API_BASE_URL}/chat`);
-      const response = await fetch(`${API_BASE_URL}/chat`, {
+      const response = await safeFetch(`${API_BASE_URL}/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -733,7 +754,7 @@ export default function ChatPage() {
 
           try {
             console.log("🌐 Sending API request to:", `${API_BASE_URL}/chat`);
-            const response = await fetch(`${API_BASE_URL}/chat`, {
+            const response = await safeFetch(`${API_BASE_URL}/chat`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -905,7 +926,7 @@ export default function ChatPage() {
               <button
                 onClick={() => setShowCameraResetMessage(false)}
                 className="text-white hover:text-orange-200 p-1 transition-colors"
-                title="닫기"
+                title={t("chat.close")}
               >
                 ✕
               </button>
@@ -930,7 +951,7 @@ export default function ChatPage() {
           <button
             onClick={() => setUiMode("enhanced")}
             className="flex items-center gap-2 px-3 py-2 text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-lg transition-colors"
-            title="Switch to Enhanced View"
+            title={t("chat.switchToEnhanced")}
           >
             <svg
               className="w-4 h-4"
@@ -951,28 +972,28 @@ export default function ChatPage() {
             <button
               onClick={retryLastMessage}
               className="flex items-center gap-2 px-3 py-2 text-sm text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors"
-              title="Retry last message"
+              title={t("chat.retry")}
               data-sign-text="retry"
               data-sign-category="button"
-              data-sign-description="Retry sending the last message"
-              aria-label="Retry last message"
+              data-sign-description={t("chat.retry")}
+              aria-label={t("chat.retry")}
             >
               <RotateCcw className="w-4 h-4" />
-              Retry
+              {t("common.retry")}
             </button>
           )}
 
           <button
             onClick={clearChat}
             className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground bg-secondary rounded-lg hover:bg-secondary/80 transition-colors"
-            title="Clear chat"
+            title={t("chat.clear")}
             data-sign-text="clear"
             data-sign-category="button"
-            data-sign-description="Clear all chat messages"
-            aria-label="Clear chat"
+            data-sign-description={t("chat.clear")}
+            aria-label={t("chat.clear")}
           >
             <Trash2 className="w-4 h-4" />
-            Clear
+            {t("common.delete")}
           </button>
         </div>
       </div>
@@ -1091,7 +1112,7 @@ export default function ChatPage() {
                   onKeyDown={handleKeyPress}
                   onFocus={handleInputFocus}
                   onBlur={handleInputBlur}
-                  placeholder="Type your message here..."
+                  placeholder={t("chat.placeholder")}
                   className="w-full resize-none rounded-lg border border-border bg-background px-4 py-3 text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary max-h-32"
                   rows={1}
                   style={{
@@ -1138,11 +1159,11 @@ export default function ChatPage() {
                 }}
                 disabled={!inputMessage.trim() || isLoading}
                 className="flex items-center justify-center w-12 h-12 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="Send message"
+                title={t("chat.send")}
                 data-sign-text="send"
                 data-sign-category="button"
-                data-sign-description="Send chat message"
-                aria-label="Send message"
+                data-sign-description={t("chat.send")}
+                aria-label={t("chat.send")}
               >
                 <Send className="w-5 h-5" />
               </button>
@@ -1167,8 +1188,8 @@ export default function ChatPage() {
                 ></div>
                 <span className="text-xs text-muted-foreground">
                   {isWebSocketConnected
-                    ? "Server Connected"
-                    : "Server Disconnected"}
+                    ? t("chat.serverConnected")
+                    : t("chat.serverDisconnected")}
                 </span>
               </div>
             </div>
@@ -1227,7 +1248,7 @@ export default function ChatPage() {
                       }`}
                     >
                       {webSocketError
-                        ? "Connection Failed"
+                        ? t("chat.connectionFailed")
                         : "Connecting to server..."}
                     </span>
                   </div>

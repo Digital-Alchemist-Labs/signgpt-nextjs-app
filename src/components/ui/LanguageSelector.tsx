@@ -53,7 +53,9 @@ export default function LanguageSelector() {
         <div className="absolute right-0 mt-2 w-48 bg-background border rounded-md shadow-lg z-50">
           <div className="py-1">
             {languages.map((language) => {
-              const isDisabled = language.code !== "en";
+              // Only enable English and Korean for now, but can be expanded
+              const isAvailable = ["en", "ko"].includes(language.code);
+              const isDisabled = !isAvailable;
               return (
                 <button
                   key={language.code}
@@ -68,7 +70,13 @@ export default function LanguageSelector() {
                       ? "opacity-50 cursor-not-allowed"
                       : "hover:bg-accent"
                   }`}
-                  data-sign-text={language.name}
+                  data-sign-text={
+                    language.code === "ko"
+                      ? "Korean"
+                      : language.code === "en"
+                      ? "English"
+                      : language.name
+                  }
                   data-sign-category="dropdown"
                   data-sign-description={`${language.name} 언어로 변경하는 옵션입니다`}
                   aria-label={`${language.name} 언어 선택`}
@@ -77,7 +85,7 @@ export default function LanguageSelector() {
                   <span>{language.name}</span>
                   {isDisabled && (
                     <span className="ml-auto text-xs text-muted-foreground">
-                      (Disabled)
+                      (Coming Soon)
                     </span>
                   )}
                 </button>

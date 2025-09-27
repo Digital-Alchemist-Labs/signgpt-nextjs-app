@@ -28,7 +28,17 @@
   "chat": {
     "Enhanced Chat": "Enhanced Chat",
     "title": "Chat",
-    "description": "Chat with SignGPT AI Assistant"
+    "description": "Chat with SignGPT AI Assistant",
+    "close": "Close",
+    "switchToEnhanced": "Switch to Enhanced View",
+    "retry": "Retry last message",
+    "clear": "Clear chat",
+    "placeholder": "Type your message here...",
+    "send": "Send message",
+    "serverConnected": "Server Connected",
+    "serverDisconnected": "Server Disconnected",
+    "connectionFailed": "Connection Failed",
+    "failedToGenerate": "Failed to generate sign language"
   },
   "settings": {
     "title": "Settings",
@@ -75,6 +85,83 @@
     "footer": {
       "title": "SignGPT - AI-Powered Sign Language Translation",
       "autoSave": "Settings are automatically saved"
+    }
+  },
+  "instructions": {
+    "title": "How to Use",
+    "home": {
+      "title": "Sign Language Translation Guide",
+      "steps": [
+        "Turn on your camera and enable sign language detection",
+        "Perform sign language gestures in front of the camera",
+        "AI will automatically recognize and translate your signs",
+        "View the translated text and sign language videos",
+        "Change language and theme settings as needed"
+      ]
+    },
+    "chat": {
+      "title": "AI Chat Guide",
+      "steps": [
+        "Type a message to start chatting with the AI",
+        "View AI responses in sign language videos",
+        "Chat history is automatically saved",
+        "Change language settings as needed"
+      ]
+    },
+    "settings": {
+      "title": "Settings Guide",
+      "steps": [
+        "Change theme in appearance settings",
+        "Select interface language in language settings",
+        "Allow camera permissions in video settings",
+        "Adjust pose display with visualization settings",
+        "All settings are automatically saved"
+      ]
+    }
+  },
+  "ui": {
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "close": "Close",
+    "steps": "steps"
+  },
+  "notice": {
+    "aslOnly": "Currently only American Sign Language (ASL) is supported"
+  },
+  "about": {
+    "title": "About SignGPT",
+    "description": "Learn more about SignGPT and our mission",
+    "mission": {
+      "title": "Our Mission",
+      "content": "SignGPT is an AI-powered platform designed to bridge communication gaps by providing real-time sign language translation. We believe in making communication accessible to everyone, regardless of hearing ability."
+    },
+    "features": {
+      "title": "Key Features",
+      "realTime": "Real-time sign language recognition and translation",
+      "aiPowered": "Cutting-edge AI models for accurate translation",
+      "multiPlatform": "Available on desktop and mobile devices",
+      "accessibility": "Designed with accessibility in mind",
+      "openSource": "Open source and community-driven"
+    },
+    "technology": {
+      "title": "Technology",
+      "content": "SignGPT uses advanced machine learning models and computer vision to recognize sign language gestures and translate them into spoken language. Our models are trained on diverse datasets to ensure accuracy across different signing styles."
+    },
+    "team": {
+      "title": "Team",
+      "content": "SignGPT is developed by a passionate team of researchers, developers, and accessibility advocates who are committed to making communication more inclusive."
+    },
+    "support": {
+      "title": "Supported Languages",
+      "asl": "American Sign Language (ASL)",
+      "more": "More sign languages coming soon"
+    },
+    "contribute": {
+      "title": "Get Involved",
+      "content": "SignGPT is an open-source project. We welcome contributions from developers, researchers, and the deaf and hard-of-hearing community.",
+      "github": "View on GitHub",
+      "feedback": "Provide Feedback",
+      "donate": "Support the Project"
     }
   }
 }

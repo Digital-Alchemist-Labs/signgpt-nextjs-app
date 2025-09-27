@@ -2,7 +2,7 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { Home, MessageCircle, Settings } from "lucide-react";
+import { Home, MessageCircle, Settings, Info } from "lucide-react";
 
 export default function TabBar() {
   const router = useRouter();
@@ -13,18 +13,28 @@ export default function TabBar() {
     {
       id: "home",
       label: t("common.home"),
+      signText: "Home", // English for Sign Hover
       icon: Home,
       path: "/",
     },
     {
       id: "chat",
       label: t("common.chat"),
+      signText: "Chat", // English for Sign Hover
       icon: MessageCircle,
       path: "/chat",
     },
     {
+      id: "about",
+      label: t("landing.about.title"),
+      signText: "About", // English for Sign Hover
+      icon: Info,
+      path: "/about",
+    },
+    {
       id: "settings",
       label: t("common.settings"),
+      signText: "Settings", // English for Sign Hover
       icon: Settings,
       path: "/settings",
     },
@@ -46,7 +56,7 @@ export default function TabBar() {
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
               }`}
-              data-sign-text={tab.label}
+              data-sign-text={tab.signText}
               data-sign-category="navigation"
               data-sign-description={`${tab.label} 페이지로 이동하는 탭 버튼입니다`}
               aria-label={`${tab.label} 페이지로 이동`}
