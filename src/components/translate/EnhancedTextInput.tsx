@@ -465,7 +465,7 @@ export default function EnhancedTextInput({
   useEffect(() => {
     if (!hadFocusRef.current) return;
 
-    const observer = new MutationObserver((mutations) => {
+    const observer = new MutationObserver(() => {
       if (hadFocusRef.current && !isComposingRef.current) {
         const ta = textareaRef.current;
         const currentFocus = document.activeElement;
@@ -605,7 +605,7 @@ export default function EnhancedTextInput({
     return () => {
       observer.disconnect();
     };
-  }, [hadFocusRef.current]);
+  }, []);
 
   // ULTIMATE NUCLEAR OPTION: Constant focus monitoring
   useEffect(() => {
@@ -760,7 +760,7 @@ export default function EnhancedTextInput({
           onCompositionEnd={handleCompositionEnd}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          onFocusCapture={(e) => {
+          onFocusCapture={() => {
             console.log("🎯 [EnhancedTextInput] Focus capture event");
             hadFocusRef.current = true;
           }}

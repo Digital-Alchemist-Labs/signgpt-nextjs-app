@@ -10,7 +10,6 @@ import EnhancedLanguageSelector from "@/components/ui/EnhancedLanguageSelector";
 import EnhancedTextInput from "@/components/translate/EnhancedTextInput";
 import EnhancedTranslationOutput from "@/components/translate/EnhancedTranslationOutput";
 import DropPoseFile from "@/components/pose/DropPoseFile";
-import SignHoverTest from "@/components/ui/SignHoverTest";
 import { ArrowLeftRight } from "lucide-react";
 
 export default function TranslatePage() {

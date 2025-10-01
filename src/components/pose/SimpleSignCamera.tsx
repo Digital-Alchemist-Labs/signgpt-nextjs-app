@@ -543,12 +543,12 @@ export const SimpleSignCamera: React.FC<SimpleSignCameraProps> = ({
                   const mockPose = {
                     faceLandmarks: [],
                     poseLandmarks: [],
-                    leftHandLandmarks: Array.from({ length: 21 }, (_, i) => ({
+                    leftHandLandmarks: Array.from({ length: 21 }, () => ({
                       x: Math.random(),
                       y: Math.random(),
                       z: Math.random(),
                     })),
-                    rightHandLandmarks: Array.from({ length: 21 }, (_, i) => ({
+                    rightHandLandmarks: Array.from({ length: 21 }, () => ({
                       x: Math.random(),
                       y: Math.random(),
                       z: Math.random(),

@@ -12,6 +12,7 @@ import {
   Eye,
   Accessibility,
   Globe,
+  Github,
 } from "lucide-react";
 
 export default function AboutPage() {

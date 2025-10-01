@@ -4,13 +4,8 @@
  */
 
 import { EstimatedPose } from "./PoseService";
-import { environment } from "@/config/environment";
-import OpenVinoSignRecognitionService, {
-  SignRecognitionResult as OpenVinoResult,
-} from "./OpenVinoSignRecognitionService";
-import WebSocketSignRecognitionService, {
-  RecognitionResult as WebSocketResult,
-} from "./WebSocketSignRecognitionService";
+import OpenVinoSignRecognitionService from "./OpenVinoSignRecognitionService";
+import WebSocketSignRecognitionService from "./WebSocketSignRecognitionService";
 
 export interface SignRecognitionResult {
   text: string;

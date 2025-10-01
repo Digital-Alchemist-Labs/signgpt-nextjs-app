@@ -27,7 +27,6 @@ export default function EnhancedTranslationOutput({
   const [poseViewerType, setPoseViewerType] = useState<PoseViewerType>("pose");
   const [isVideoLoading, setIsVideoLoading] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [showViewerSelector, setShowViewerSelector] = useState(false);
   const [poseData, setPoseData] = useState<Record<string, unknown> | null>(
     null
@@ -809,15 +808,14 @@ export default function EnhancedTranslationOutput({
                 onPointerDown={(e) => e.preventDefault()}
                 onClick={handleVideoClick}
                 onError={handleVideoError}
-                onPlay={() => setIsPlaying(true)}
-                onPause={() => setIsPlaying(false)}
+                onPlay={() => {}}
+                onPause={() => {}}
                 onEnded={() => {
                   // Reset to beginning and restart for seamless loop
                   setTimeout(() => {
                     if (videoRef.current) {
                       videoRef.current.currentTime = 0;
                       videoRef.current.play().catch(console.error);
-                      setIsPlaying(true);
                     }
                   }, 50); // Small delay for smooth restart
                 }}

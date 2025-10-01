@@ -3,7 +3,6 @@
  * signgpt-front 프로젝트의 실시간 WebSocket 기반 수어 인식 시스템을 통합
  */
 
-import { environment } from "@/config/environment";
 
 export interface RecognitionResult {
   recognized_word: string;

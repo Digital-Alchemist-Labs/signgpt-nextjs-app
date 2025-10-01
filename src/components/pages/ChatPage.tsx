@@ -3,14 +3,10 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Send, RotateCcw, Trash2, Play, Square, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useSettings } from "@/contexts/SettingsContext";
 import { safeFetch } from "@/lib/errorHandler";
 import { TranslationService } from "@/services/TranslationService";
 import { PoseViewer } from "@/components/pose/PoseViewer";
-import { environment } from "@/config/environment";
 import HandTracker, { HandTrackerRef } from "@/components/pose/HandTracker";
-import ResultDisplay from "@/components/pose/ResultDisplay";
-import ConnectionStatus from "@/components/pose/ConnectionStatus";
 import EnhancedChatPage from "./EnhancedChatPage";
 
 interface ChatMessage {
@@ -32,7 +28,6 @@ interface ChatResponse {
 
 export default function ChatPage() {
   const { t } = useTranslation();
-  const { settings } = useSettings();
 
   // UI Mode state
   type UiMode = "original" | "enhanced";

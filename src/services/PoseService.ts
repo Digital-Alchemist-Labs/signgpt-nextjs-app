@@ -1,7 +1,6 @@
 "use client";
 
 import { MediapipeHolisticService } from "./MediapipeHolisticService";
-import { environment } from "@/config/environment";
 
 export interface PoseLandmark {
   x: number;
@@ -35,7 +34,6 @@ const IGNORED_BODY_LANDMARKS = [
  */
 export class PoseService {
   private holistic = new MediapipeHolisticService();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private model: unknown = null;
 
   // loadPromise must be static, in case multiple PoseService instances are created

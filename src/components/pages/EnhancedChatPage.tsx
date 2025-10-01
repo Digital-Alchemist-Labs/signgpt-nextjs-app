@@ -6,10 +6,6 @@ import {
   RotateCcw,
   Trash2,
   MessageCircle,
-  Camera,
-  CameraOff,
-  Mic,
-  MicOff,
   Type,
   Play,
   Square,
@@ -19,16 +15,8 @@ import { useTranslation } from "react-i18next";
 // import { useSettings } from "@/contexts/SettingsContext"; // Unused for now
 import { TranslationService } from "@/services/TranslationService";
 import { PoseViewer } from "@/components/pose/PoseViewer";
-import { environment } from "@/config/environment";
-import { SimpleSignCamera } from "@/components/pose/SimpleSignCamera";
 import HandTracker, { HandTrackerRef } from "@/components/pose/HandTracker";
-import ResultDisplay from "@/components/pose/ResultDisplay";
 import ConnectionStatus from "@/components/pose/ConnectionStatus";
-import { usePose } from "@/contexts/PoseContext";
-import { EstimatedPose } from "@/services/PoseService";
-import SignRecognitionService, {
-  SignRecognitionResult,
-} from "@/services/SignRecognitionService";
 // import EnhancedTextInput from "@/components/translate/EnhancedTextInput"; // Unused for now
 // import EnhancedTranslationOutput from "@/components/translate/EnhancedTranslationOutput"; // Unused for now
 
@@ -60,10 +48,6 @@ export default function EnhancedChatPage({
 }: EnhancedChatPageProps = {}) {
   const { t } = useTranslation();
   // const { settings } = useSettings(); // Unused for now
-  const { state: poseState, loadModel, processPoseFromVideo } = usePose();
-
-  // Initialize sign recognition service
-  const [signRecognitionService] = useState(() => new SignRecognitionService());
 
   // Chat state
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -73,15 +57,6 @@ export default function EnhancedChatPage({
 
   // Input mode state
   const [inputMode, setInputMode] = useState<InputMode>("text");
-  const [isRecordingSign, setIsRecordingSign] = useState(false);
-  const [recognizedText, setRecognizedText] = useState("");
-  const [lastRecognitionResult, setLastRecognitionResult] =
-    useState<SignRecognitionResult | null>(null);
-  const [recognitionStatus, setRecognitionStatus] = useState({
-    isReady: false,
-    bufferStatus: { current: 0, required: 60, ready: false },
-    recognizedWords: [] as string[],
-  });
 
   // WebSocket Sign Recognition State (from ChatPage)
   const [isWebSocketConnected, setIsWebSocketConnected] = useState(false);
@@ -100,7 +75,6 @@ export default function EnhancedChatPage({
     }[]
   >([]);
   const [isSignRecognitionActive, setIsSignRecognitionActive] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [isAutoMode, setIsAutoMode] = useState(false);
 
   // Camera reset state
@@ -385,7 +359,6 @@ export default function EnhancedChatPage({
             );
 
             setRecognitionResult(data);
-            setIsProcessing(false);
 
             // 수어 인식 결과가 있으면 세션 상태와 관계없이 히스토리에 추가
             if (data.recognized_word && data.recognized_word.trim() !== "") {
@@ -523,7 +496,6 @@ export default function EnhancedChatPage({
             setFrameCount(data.total_frames);
           } else if (data.type === "recognition_result") {
             setRecognitionResult(data);
-            setIsProcessing(false);
 
             if (isSignRecognitionActive) {
               setRecognitionHistory((prev) => [
@@ -592,7 +564,6 @@ export default function EnhancedChatPage({
   // Start recognition
   const startRecognition = useCallback(() => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      setIsProcessing(true);
       wsRef.current.send(
         JSON.stringify({
           action: "recognize",
@@ -866,85 +837,7 @@ export default function EnhancedChatPage({
     [sendKeypoints]
   );
 
-  // Handle pose detection for sign recognition
-  const handlePoseDetected = useCallback(
-    async (pose: EstimatedPose) => {
-      if (!isRecordingSign) return;
 
-      try {
-        // Add pose to the recognition service buffer
-        signRecognitionService.addPose(pose);
-
-        // Update recognition status
-        const status = signRecognitionService.getRecognitionStatus();
-        setRecognitionStatus(status);
-
-        // Try to process accumulated poses
-        const result = await signRecognitionService.processBuffer({
-          language: "ko", // Korean language as the model recognizes Korean
-          signLanguage: "ksl", // Korean Sign Language
-          minConfidence: 0.5,
-        });
-
-        if (result && result.confidence > 0.4) {
-          setLastRecognitionResult(result);
-
-          // If this is a complete sentence from LLM, replace the text
-          if (result.recognizedWords && result.recognizedWords.length >= 3) {
-            setRecognizedText(result.text);
-          } else {
-            // Otherwise, append the word
-            setRecognizedText((prev) => {
-              const newText = prev ? `${prev} ${result.text}` : result.text;
-              return newText.trim();
-            });
-          }
-        }
-      } catch (error) {
-        // Handle native abort errors gracefully
-        if (error instanceof Error && error.message.includes("abort")) {
-          console.warn("Sign recognition aborted, continuing...");
-          return;
-        }
-        console.error("Failed to recognize sign:", error);
-        // Don't show error to user for recognition failures
-      }
-    },
-    [isRecordingSign, signRecognitionService]
-  );
-
-  // Handle sign recording
-  const toggleSignRecording = useCallback(() => {
-    if (isRecordingSign) {
-      setIsRecordingSign(false);
-      signRecognitionService.clearBuffer();
-      if (recognizedText.trim()) {
-        setInputMessage(recognizedText.trim());
-        setRecognizedText("");
-      }
-      setLastRecognitionResult(null);
-    } else {
-      setIsRecordingSign(true);
-      setRecognizedText("");
-      setLastRecognitionResult(null);
-      signRecognitionService.clearBuffer();
-      if (!poseState.isLoaded) {
-        loadModel().catch((error) => {
-          console.error("Failed to load pose model:", error);
-          setError(
-            "Failed to load pose detection model. Sign recognition may not work properly."
-          );
-          // Still allow recording for testing purposes
-        });
-      }
-    }
-  }, [
-    isRecordingSign,
-    recognizedText,
-    poseState.isLoaded,
-    loadModel,
-    signRecognitionService,
-  ]);
 
   // Send message to chat API
   const sendMessage = useCallback(async () => {
