@@ -1,19 +1,19 @@
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
 
 // Import translation files
-import en from '@/locales/en.json';
-import de from '@/locales/de.json';
-import fr from '@/locales/fr.json';
-import es from '@/locales/es.json';
-import it from '@/locales/it.json';
-import pt from '@/locales/pt.json';
-import ru from '@/locales/ru.json';
-import zh from '@/locales/zh.json';
-import ja from '@/locales/ja.json';
-import ko from '@/locales/ko.json';
-import ar from '@/locales/ar.json';
-import hi from '@/locales/hi.json';
+import en from "@/locales/en.json";
+import de from "@/locales/de.json";
+import fr from "@/locales/fr.json";
+import es from "@/locales/es.json";
+import it from "@/locales/it.json";
+import pt from "@/locales/pt.json";
+import ru from "@/locales/ru.json";
+import zh from "@/locales/zh.json";
+import ja from "@/locales/ja.json";
+import ko from "@/locales/ko.json";
+import ar from "@/locales/ar.json";
+import hi from "@/locales/hi.json";
 
 const resources = {
   en: { translation: en },
@@ -30,22 +30,36 @@ const resources = {
   hi: { translation: hi },
 };
 
-i18n
-  .use(initReactI18next)
-  .init({
-    resources,
-    lng: 'en',
-    fallbackLng: 'en',
-    debug: process.env.NODE_ENV === 'development',
-    
-    interpolation: {
-      escapeValue: false,
-    },
-    
-    react: {
-      useSuspense: false,
-    },
-  });
+// Get saved language from localStorage
+const getSavedLanguage = () => {
+  if (typeof window === "undefined") return "en";
+
+  try {
+    const settings = localStorage.getItem("settings");
+    if (settings) {
+      const parsed = JSON.parse(settings);
+      return parsed.language || "en";
+    }
+  } catch (error) {
+    console.error("Failed to load saved language:", error);
+  }
+
+  return "en";
+};
+
+i18n.use(initReactI18next).init({
+  resources,
+  lng: getSavedLanguage(),
+  fallbackLng: "en",
+  debug: process.env.NODE_ENV === "development",
+
+  interpolation: {
+    escapeValue: false,
+  },
+
+  react: {
+    useSuspense: false,
+  },
+});
 
 export default i18n;
-

@@ -13,10 +13,17 @@ export default function Settings() {
   const { resolvedTheme } = useTheme();
 
   useEffect(() => {
-    // Set language from settings
-    if (settings.language !== i18n.language) {
-      i18n.changeLanguage(settings.language);
-    }
+    // Set language from settings - ensure language change is applied
+    const changeLanguage = async () => {
+      if (settings.language !== i18n.language) {
+        console.log(
+          `Changing language from ${i18n.language} to ${settings.language}`
+        );
+        await i18n.changeLanguage(settings.language);
+      }
+    };
+
+    changeLanguage();
 
     // Set document language and direction
     document.documentElement.lang = settings.language;

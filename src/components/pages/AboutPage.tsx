@@ -7,7 +7,6 @@ import {
   Brain,
   Smartphone,
   Users,
-  Github,
   MessageCircle,
   Heart,
   Eye,
@@ -47,13 +46,6 @@ export default function AboutPage() {
   ];
 
   const contributeActions = [
-    {
-      icon: <Github className="w-5 h-5" />,
-      title: t("about.contribute.github"),
-      href: "https://github.com/sign-language-processing/sign-gpt",
-      color:
-        "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700",
-    },
     {
       icon: <MessageCircle className="w-5 h-5" />,
       title: t("about.contribute.feedback"),
@@ -232,7 +224,7 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 gap-4">
             {contributeActions.map((action, index) => (
               <a
                 key={index}
@@ -244,9 +236,7 @@ export default function AboutPage() {
                     : undefined
                 }
                 className={`${action.color} rounded-lg p-6 text-center transition-colors block`}
-                data-sign-text={
-                  index === 0 ? "GitHub" : index === 1 ? "Feedback" : "Donate"
-                }
+                data-sign-text={index === 0 ? "Feedback" : "Donate"}
               >
                 <div className="flex items-center justify-center mb-3">
                   {action.icon}
