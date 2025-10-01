@@ -25,7 +25,7 @@ export const handleAbortError = (error: Error | unknown): boolean => {
 export const safeFetch = async (
   url: string,
   options: RequestInit = {},
-  timeoutMs: number = 10000
+  timeoutMs: number = 60000 // Increased to 60 seconds for AI chat responses
 ): Promise<Response> => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);

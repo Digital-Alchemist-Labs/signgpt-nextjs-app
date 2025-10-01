@@ -1,24 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Output file tracing root to fix warning
-  outputFileTracingRoot: __dirname,
-
-  // Turbopack configuration
-  experimental: {
-    turbo: {
-      rules: {
-        "*.svg": {
-          loaders: ["@svgr/webpack"],
-          as: "*.js",
-        },
-      },
-    },
-  },
-
-  // Webpack configuration for fallback
-  webpack: (config, { dev, isServer }) => {
-    // Handle AbortController polyfill
+  // Webpack configuration for fallback (keep this for browser compatibility)
+  webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -27,28 +11,15 @@ const nextConfig: NextConfig = {
         tls: false,
       };
     }
-
     return config;
   },
 
-  // Headers to prevent AbortError and improve compatibility
+  // Basic security headers (without strict CORS that blocks API calls)
   async headers() {
     return [
       {
         source: "/(.*)",
         headers: [
-          {
-            key: "Cross-Origin-Embedder-Policy",
-            value: "credentialless",
-          },
-          {
-            key: "Cross-Origin-Opener-Policy",
-            value: "same-origin",
-          },
-          {
-            key: "X-Frame-Options",
-            value: "DENY",
-          },
           {
             key: "X-Content-Type-Options",
             value: "nosniff",
@@ -58,13 +29,8 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // Additional configuration to prevent AbortError
-  swcMinify: true,
-  poweredByHeader: false,
-
   // Image optimization
   images: {
-    domains: [],
     unoptimized: true,
   },
 };
