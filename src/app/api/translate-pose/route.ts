@@ -13,8 +13,8 @@ const SIGN_MT_CLOUD_FUNCTION_URL =
   process.env.NEXT_PUBLIC_SIGN_MT_CLOUD_FUNCTION_URL ||
   "https://us-central1-sign-mt.cloudfunctions.net/spoken_text_to_signed_pose";
 
-// Helper function to add CORS headers
-function addCorsHeaders(response: NextResponse) {
+// Helper function to add CORS headers (generic to preserve response type)
+function addCorsHeaders<T>(response: NextResponse<T>): NextResponse<T> {
   response.headers.set("Access-Control-Allow-Origin", "*");
   response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   response.headers.set("Access-Control-Allow-Headers", "Content-Type");
