@@ -48,6 +48,7 @@ export default function SignHover({ config = {} }: SignHoverProps) {
   const firebaseService = useRef<FirebaseAssetsService>(
     new FirebaseAssetsService()
   );
+  const translationService = useRef(new TranslationService());
   const inflight = useRef<Map<string, Promise<string | null>>>(new Map());
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -428,7 +429,44 @@ export default function SignHover({ config = {} }: SignHoverProps) {
             // Continue to pose URL generation fallback
           }
 
-          // 4) Try generating pose URL from translation service (following Enhanced Translation Output pattern)
+          // 4) Try loading actual pose data from Sign.MT via proxy
+          try {
+            console.log(
+              "SignHover: Attempting to load pose data from Sign.MT via proxy:",
+              text
+            );
+            const poseResult = await translationService.current.fetchPoseDataCached(
+              text,
+              "en", // Default to English for SignHover
+              "ase" // Default to ASE (American Sign Language)
+            );
+
+            if (poseResult && !poseResult.error) {
+              console.log("SignHover: Pose data loaded successfully");
+
+              // If we got a pose URL or data, use it
+              if (poseResult.poseUrl) {
+                signHoverService.cacheSignVideo(
+                  text,
+                  `POSE_SRC:${poseResult.poseUrl}`
+                );
+                return `POSE_SRC:${poseResult.poseUrl}`;
+              } else if (poseResult.pose) {
+                // If we got pose data, generate a URL for it
+                const poseUrl = generatePoseUrlFromText(text);
+                signHoverService.cacheSignVideo(text, `POSE_SRC:${poseUrl}`);
+                return `POSE_SRC:${poseUrl}`;
+              }
+            }
+          } catch (error) {
+            console.warn(
+              "SignHover: Failed to load pose data from Sign.MT:",
+              error
+            );
+            // Continue to fallback
+          }
+
+          // 5) Fallback: generate pose URL from translation service
           try {
             const poseUrl = generatePoseUrlFromText(text);
             signHoverService.cacheSignVideo(text, `POSE_SRC:${poseUrl}`);
@@ -437,7 +475,7 @@ export default function SignHover({ config = {} }: SignHoverProps) {
             // Continue to video generation fallback
           }
 
-          // 5) Final fallback: generate video from text
+          // 6) Final fallback: generate video from text
           const generatedUrl = await generateVideoFromPose(text);
           signHoverService.cacheSignVideo(text, generatedUrl);
           return generatedUrl;

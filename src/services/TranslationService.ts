@@ -351,4 +351,99 @@ export class TranslationService {
       (isSourceSpoken && isTargetSigned) || (isSourceSigned && isTargetSpoken)
     );
   }
+
+  /**
+   * Fetch pose data from Sign.MT via proxy (CORS-safe)
+   * This method uses the Next.js API proxy to avoid CORS issues
+   */
+  async fetchPoseData(
+    text: string,
+    spokenLanguage: string,
+    signedLanguage: string
+  ): Promise<{
+    pose?: unknown;
+    poseUrl?: string;
+    contentType?: string;
+    error?: string;
+  }> {
+    try {
+      // Normalize the signed language code for API compatibility
+      const normalizedSignedLanguage =
+        TranslationService.normalizeSignLanguageCode(signedLanguage);
+
+      console.log("Fetching pose data via proxy:", {
+        text,
+        spokenLanguage,
+        signedLanguage: normalizedSignedLanguage,
+      });
+
+      const response = await fetch("/api/translate-pose", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text,
+          spokenLanguage,
+          signedLanguage: normalizedSignedLanguage,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || `HTTP error! status: ${response.status}`
+        );
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch pose data:", error);
+      return {
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  }
+
+  /**
+   * Fetch pose data with caching support
+   */
+  private poseCache = new Map<
+    string,
+    Promise<{
+      pose?: unknown;
+      poseUrl?: string;
+      contentType?: string;
+      error?: string;
+    }>
+  >();
+
+  async fetchPoseDataCached(
+    text: string,
+    spokenLanguage: string,
+    signedLanguage: string
+  ): Promise<{
+    pose?: unknown;
+    poseUrl?: string;
+    contentType?: string;
+    error?: string;
+  }> {
+    const cacheKey = `${text}:${spokenLanguage}:${signedLanguage}`;
+
+    // Check if we have a pending or completed request
+    if (!this.poseCache.has(cacheKey)) {
+      const promise = this.fetchPoseData(text, spokenLanguage, signedLanguage);
+      this.poseCache.set(cacheKey, promise);
+
+      // Clean up cache after some time to prevent memory leaks
+      promise.finally(() => {
+        setTimeout(() => {
+          this.poseCache.delete(cacheKey);
+        }, 60000); // 1 minute cache
+      });
+    }
+
+    return this.poseCache.get(cacheKey)!;
+  }
 }

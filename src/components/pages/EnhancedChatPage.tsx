@@ -837,8 +837,6 @@ export default function EnhancedChatPage({
     [sendKeypoints]
   );
 
-
-
   // Send message to chat API
   const sendMessage = useCallback(async () => {
     const messageText = inputMessage.trim();

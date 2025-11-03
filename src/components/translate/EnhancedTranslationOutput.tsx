@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Download, Share2, Copy, RotateCcw, Settings } from "lucide-react";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { FirebaseAssetsService } from "@/services/FirebaseAssetsService";
+import { TranslationService } from "@/services/TranslationService";
 import { signHoverService } from "@/services/SignHoverService";
 import { PoseViewer } from "@/components/pose/PoseViewer";
 
@@ -35,9 +36,80 @@ export default function EnhancedTranslationOutput({
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const assetsService = useRef(new FirebaseAssetsService());
+  const translationService = useRef(new TranslationService());
 
-  // Note: loadPoseData function removed to prevent CORS issues
-  // Pose data loading is now handled during video generation only
+  /**
+   * Load pose data from Sign.MT via proxy (CORS-safe)
+   * This function uses the Next.js API proxy to avoid CORS issues
+   */
+  const loadPoseData = useCallback(
+    async (text: string, spokenLanguage: string, signedLanguage: string) => {
+      setIsLoadingPose(true);
+      setPoseData(null);
+
+      try {
+        console.log("Loading pose data via proxy:", {
+          text,
+          spokenLanguage,
+          signedLanguage,
+        });
+
+        const result = await translationService.current.fetchPoseDataCached(
+          text,
+          spokenLanguage,
+          signedLanguage
+        );
+
+        if (result.error) {
+          console.error("Failed to load pose data:", result.error);
+          setVideoError(`Failed to load pose: ${result.error}`);
+          return null;
+        }
+
+        if (result.pose) {
+          console.log("Pose data loaded successfully:", result.contentType);
+
+          // If pose is base64 encoded, decode it
+          if (typeof result.pose === "string") {
+            try {
+              const binaryString = atob(result.pose);
+              const bytes = new Uint8Array(binaryString.length);
+              for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+              }
+              const blob = new Blob([bytes], {
+                type: result.contentType || "application/x-pose",
+              });
+              const poseUrl = URL.createObjectURL(blob);
+              setPoseData({ url: poseUrl, blob });
+              return poseUrl;
+            } catch (error) {
+              console.error("Failed to decode pose data:", error);
+            }
+          } else {
+            // Assume it's already an object
+            setPoseData(result.pose as Record<string, unknown>);
+            return result.pose;
+          }
+        }
+
+        if (result.poseUrl) {
+          console.log("Pose URL returned:", result.poseUrl);
+          setPoseData({ url: result.poseUrl });
+          return result.poseUrl;
+        }
+
+        return null;
+      } catch (error) {
+        console.error("Exception loading pose data:", error);
+        setVideoError("Failed to load pose data");
+        return null;
+      } finally {
+        setIsLoadingPose(false);
+      }
+    },
+    []
+  );
 
   // Create video from pose data with realistic sign language animation
   const createVideoFromPoseData = useCallback(
@@ -457,8 +529,22 @@ export default function EnhancedTranslationOutput({
     setVideoError(null);
 
     try {
+      // Extract text and languages from pose URL
+      let text = state.translatedText || "Hello";
+      let spokenLang = state.sourceLanguage || "en";
+      let signedLang = state.targetLanguage || "ase";
+
+      try {
+        const url = new URL(state.signedLanguagePose);
+        text = url.searchParams.get("text") || text;
+        spokenLang = url.searchParams.get("spoken") || spokenLang;
+        signedLang = url.searchParams.get("signed") || signedLang;
+      } catch {
+        console.warn("Could not parse pose URL, using state values");
+      }
+
       // 1) Use cache if available for the user's current text
-      const cached = signHoverService.getCachedSignVideo(state.translatedText);
+      const cached = signHoverService.getCachedSignVideo(text);
       if (cached) {
         setSignedLanguageVideo(cached);
         setIsVideoLoading(false);
@@ -467,9 +553,7 @@ export default function EnhancedTranslationOutput({
 
       // 2) Try to fetch pre-rendered video from Firebase by sanitized text
       try {
-        const sanitizedText = (state.translatedText || "")
-          .toLowerCase()
-          .replace(/[^a-z0-9]/g, "_");
+        const sanitizedText = text.toLowerCase().replace(/[^a-z0-9]/g, "_");
         const firebasePath = `sign_videos/${sanitizedText}.mp4`;
         const firebase = assetsService.current;
         await firebase.init();
@@ -479,20 +563,48 @@ export default function EnhancedTranslationOutput({
         const head = await fetch(firebaseUrl, { method: "HEAD" });
         if (head.ok) {
           setSignedLanguageVideo(firebaseUrl);
-          signHoverService.cacheSignVideo(state.translatedText, firebaseUrl);
+          signHoverService.cacheSignVideo(text, firebaseUrl);
           setIsVideoLoading(false);
           return;
         }
       } catch {
-        // Continue to generation fallback
+        // Continue to pose loading
+        console.log("No pre-rendered video in Firebase, loading pose data...");
       }
 
-      // 3) Fallback: generate video from pose parameters
+      // 3) Try to load actual pose data from Sign.MT via proxy
+      try {
+        console.log(
+          "Attempting to load pose data from Sign.MT via proxy:",
+          text
+        );
+        const poseResult = await loadPoseData(text, spokenLang, signedLang);
+
+        if (poseResult) {
+          console.log("Pose data loaded successfully, now generating video...");
+          // If we got pose data, generate video from it
+          const poseUrl =
+            typeof poseResult === "string"
+              ? poseResult
+              : state.signedLanguagePose;
+          const generatedUrl = await generateVideoFromPose(poseUrl);
+          setSignedLanguageVideo(generatedUrl);
+          signHoverService.cacheSignVideo(text, generatedUrl);
+          setIsVideoLoading(false);
+          return;
+        }
+      } catch (error) {
+        console.warn("Failed to load pose data from Sign.MT:", error);
+        // Continue to fallback
+      }
+
+      // 4) Final fallback: generate video from pose URL parameters
+      console.log("Using fallback: generating video from pose URL parameters");
       const generatedUrl = await generateVideoFromPose(
         state.signedLanguagePose
       );
       setSignedLanguageVideo(generatedUrl);
-      signHoverService.cacheSignVideo(state.translatedText, generatedUrl);
+      signHoverService.cacheSignVideo(text, generatedUrl);
     } catch (error) {
       console.error("Failed to load video:", error);
       setVideoError("Failed to generate sign language video");
@@ -502,8 +614,11 @@ export default function EnhancedTranslationOutput({
   }, [
     state.signedLanguagePose,
     state.translatedText,
+    state.sourceLanguage,
+    state.targetLanguage,
     setSignedLanguageVideo,
     generateVideoFromPose,
+    loadPoseData,
   ]);
 
   // Log when pose URL changes (but don't auto-load to prevent CORS issues)
