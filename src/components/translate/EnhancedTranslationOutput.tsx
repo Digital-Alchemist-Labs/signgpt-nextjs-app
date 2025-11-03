@@ -621,15 +621,31 @@ export default function EnhancedTranslationOutput({
     loadPoseData,
   ]);
 
-  // Log when pose URL changes (but don't auto-load to prevent CORS issues)
+  // Auto-load pose data when pose URL changes (using proxy to avoid CORS)
   useEffect(() => {
     if (state.signedLanguagePose) {
       console.log("Pose URL generated:", state.signedLanguagePose);
-      // Reset pose data when URL changes
-      setPoseData(null);
-      setIsLoadingPose(false);
+      
+      // Extract text and languages from pose URL
+      let text = state.translatedText || "Hello";
+      let spokenLang = state.sourceLanguage || "en";
+      let signedLang = state.targetLanguage || "ase";
+
+      try {
+        const url = new URL(state.signedLanguagePose);
+        text = url.searchParams.get("text") || text;
+        spokenLang = url.searchParams.get("spoken") || spokenLang;
+        signedLang = url.searchParams.get("signed") || signedLang;
+      } catch {
+        console.warn("Could not parse pose URL, using state values");
+      }
+
+      // Auto-load pose data via proxy to avoid CORS
+      loadPoseData(text, spokenLang, signedLang).catch((error) => {
+        console.error("Failed to auto-load pose data:", error);
+      });
     }
-  }, [state.signedLanguagePose]);
+  }, [state.signedLanguagePose, state.translatedText, state.sourceLanguage, state.targetLanguage, loadPoseData]);
 
   // Don't auto-load video to prevent CORS issues
   // User needs to click "Generate Video" button manually
@@ -967,7 +983,11 @@ export default function EnhancedTranslationOutput({
                 {/* Pose Viewer Component */}
                 <div className="flex-1 relative">
                   <PoseViewer
-                    src={state.signedLanguagePose}
+                    src={
+                      poseData && typeof poseData === "object" && "url" in poseData && typeof poseData.url === "string"
+                        ? poseData.url
+                        : state.signedLanguagePose
+                    }
                     className="w-full h-full"
                     showControls={true}
                     background="transparent"

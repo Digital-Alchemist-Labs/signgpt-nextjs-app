@@ -196,30 +196,48 @@ git push origin main
 # - 네트워크 탭에서 200 OK 응답 확인
 ```
 
-## 📋 변경 사항 요약 (v1.1.0)
+## 📋 변경 사항 요약 (v1.2.0)
 
 ### 수정된 파일
 1. **`src/app/api/translate-pose/route.ts`**
    - ✅ `application/pose` content-type 지원 추가
    - ✅ Request 헤더에 `Origin`, `Referer`, `User-Agent` 추가
-   - ✅ 모든 응답에 CORS 헤더 추가
+   - ✅ 모든 응답에 CORS 헤더 추가 (제네릭 타입 보존)
    - ✅ OPTIONS 메서드 핸들러 추가
    - ✅ Binary 데이터 처리 개선 (content-type 없어도 작동)
 
-2. **`vercel.json`** (신규)
+2. **`src/components/ui/SignHover.tsx`**
+   - ✅ Base64 pose 데이터를 Blob URL로 변환
+   - ✅ PoseViewer가 프록시 데이터 사용 (직접 Sign.MT 접근 방지)
+
+3. **`src/components/translate/EnhancedTranslationOutput.tsx`**
+   - ✅ 자동 pose 데이터 로딩 (useEffect 추가)
+   - ✅ PoseViewer가 Blob URL 우선 사용
+   - ✅ 직접 Sign.MT URL 접근 방지
+
+4. **`vercel.json`** (신규)
    - ✅ Vercel 레벨 CORS 설정
    - ✅ API 라우트 헤더 설정
 
 ### 주요 개선 사항
 - 🎯 **"Unexpected content type" 에러 해결**
-- 🌐 **Vercel "Access denied" 문제 해결**
+- 🌐 **PoseViewer "Access denied" 문제 해결** (v1.2.0)
 - 🔒 **CORS 정책 완벽 지원**
 - 🚀 **더 견고한 에러 처리**
+- 💾 **Base64 → Blob URL 변환으로 메모리 효율 개선**
+
+### v1.2.0 핵심 수정사항
+**문제**: PoseViewer가 Sign.MT URL을 직접 브라우저에서 로드하려고 시도하여 403 발생
+
+**해결**:
+1. 프록시에서 가져온 base64 pose 데이터를 Blob URL로 변환
+2. PoseViewer에 Blob URL 전달 (원본 URL 대신)
+3. 자동 로딩으로 사용자 경험 개선
 
 ---
 
 **작성일**: 2025-11-03  
-**최종 수정**: 2025-11-03  
-**버전**: 1.1.0  
-**상태**: ✅ 완료 - 로컬 & Vercel 배포 준비 완료
+**최종 수정**: 2025-11-03 (v1.2.0)  
+**버전**: 1.2.0  
+**상태**: ✅ 완료 - Access Denied 문제 해결!
 

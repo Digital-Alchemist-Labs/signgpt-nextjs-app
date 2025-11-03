@@ -451,11 +451,27 @@ export default function SignHover({ config = {} }: SignHoverProps) {
                   `POSE_SRC:${poseResult.poseUrl}`
                 );
                 return `POSE_SRC:${poseResult.poseUrl}`;
-              } else if (poseResult.pose) {
-                // If we got pose data, generate a URL for it
-                const poseUrl = generatePoseUrlFromText(text);
-                signHoverService.cacheSignVideo(text, `POSE_SRC:${poseUrl}`);
-                return `POSE_SRC:${poseUrl}`;
+              } else if (poseResult.pose && typeof poseResult.pose === "string") {
+                // Convert base64 pose data to Blob URL
+                try {
+                  console.log("SignHover: Converting base64 pose data to Blob URL");
+                  const binaryString = atob(poseResult.pose);
+                  const bytes = new Uint8Array(binaryString.length);
+                  for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                  }
+                  const blob = new Blob([bytes], {
+                    type: poseResult.contentType || "application/pose",
+                  });
+                  const blobUrl = URL.createObjectURL(blob);
+                  console.log("SignHover: Blob URL created:", blobUrl);
+                  
+                  signHoverService.cacheSignVideo(text, `POSE_SRC:${blobUrl}`);
+                  return `POSE_SRC:${blobUrl}`;
+                } catch (error) {
+                  console.error("SignHover: Failed to convert pose data to Blob:", error);
+                  // Continue to fallback
+                }
               }
             }
           } catch (error) {
