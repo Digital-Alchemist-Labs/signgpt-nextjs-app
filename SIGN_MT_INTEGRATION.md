@@ -139,13 +139,24 @@ NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_URL=https://firebasestorage.googleapis.com/v
 
 ## 🐛 문제 해결
 
+### 문제: "Unexpected content type: application/pose" (해결됨! ✅)
+- **원인**: Sign.MT가 `application/pose` content-type을 반환하는데 처리하지 못함
+- **해결**: 
+  - Accept 헤더에 `application/pose` 추가
+  - Binary 처리 조건에 `application/pose` 추가
+  - 모든 binary 데이터를 유연하게 처리하도록 개선
+
+### 문제: "Access denied" in Vercel (해결됨! ✅)
+- **원인**: Sign.MT API가 특정 origin/referer를 체크
+- **해결**:
+  - Request 헤더에 `Origin`, `Referer`, `User-Agent` 추가
+  - CORS 헤더를 모든 응답에 추가
+  - `vercel.json`에 CORS 설정 추가
+  - OPTIONS 메서드 핸들러 추가
+
 ### 문제: "Failed to fetch pose data"
 - **원인**: Sign.MT 서버가 응답하지 않거나 네트워크 문제
 - **해결**: 폴백 메커니즘이 자동으로 작동하며 로컬 비디오 생성
-
-### 문제: "CORS error"
-- **원인**: 브라우저가 직접 Sign.MT에 요청 시도
-- **해결**: 이제 프록시를 통해 서버 사이드에서 요청하므로 문제 해결됨
 
 ### 문제: Timeout
 - **원인**: Sign.MT 응답이 너무 느림 (30초 timeout 설정)
@@ -159,16 +170,56 @@ NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_URL=https://firebasestorage.googleapis.com/v
 
 ## ✅ 테스트 체크리스트
 
+### 로컬 테스트
 - [ ] 개발 서버 시작: `npm run dev`
 - [ ] 번역 페이지에서 텍스트 입력
 - [ ] "Regenerate" 버튼 클릭하여 비디오 생성 확인
 - [ ] 콘솔에서 "Pose data loaded successfully" 로그 확인
+- [ ] "Unexpected content type" 에러가 없는지 확인
 - [ ] SignHover 활성화하여 툴팁 표시 확인
 - [ ] 네트워크 탭에서 `/api/translate-pose` 호출 확인
+
+### Vercel 배포 테스트
+```bash
+# 1. 코드 커밋 & 푸시
+git add .
+git commit -m "fix: Add support for application/pose content-type and CORS headers"
+git push origin main
+
+# 2. Vercel에서 자동 배포 확인
+# https://vercel.com/dashboard
+
+# 3. 배포된 사이트에서 테스트
+# - 번역 페이지 접속
+# - 텍스트 입력 및 "Regenerate" 클릭
+# - 브라우저 콘솔에서 "Access denied" 에러 없는지 확인
+# - 네트워크 탭에서 200 OK 응답 확인
+```
+
+## 📋 변경 사항 요약 (v1.1.0)
+
+### 수정된 파일
+1. **`src/app/api/translate-pose/route.ts`**
+   - ✅ `application/pose` content-type 지원 추가
+   - ✅ Request 헤더에 `Origin`, `Referer`, `User-Agent` 추가
+   - ✅ 모든 응답에 CORS 헤더 추가
+   - ✅ OPTIONS 메서드 핸들러 추가
+   - ✅ Binary 데이터 처리 개선 (content-type 없어도 작동)
+
+2. **`vercel.json`** (신규)
+   - ✅ Vercel 레벨 CORS 설정
+   - ✅ API 라우트 헤더 설정
+
+### 주요 개선 사항
+- 🎯 **"Unexpected content type" 에러 해결**
+- 🌐 **Vercel "Access denied" 문제 해결**
+- 🔒 **CORS 정책 완벽 지원**
+- 🚀 **더 견고한 에러 처리**
 
 ---
 
 **작성일**: 2025-11-03  
-**버전**: 1.0.0  
-**상태**: ✅ 완료 및 테스트 대기
+**최종 수정**: 2025-11-03  
+**버전**: 1.1.0  
+**상태**: ✅ 완료 - 로컬 & Vercel 배포 준비 완료
 

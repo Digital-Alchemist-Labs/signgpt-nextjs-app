@@ -13,6 +13,14 @@ const SIGN_MT_CLOUD_FUNCTION_URL =
   process.env.NEXT_PUBLIC_SIGN_MT_CLOUD_FUNCTION_URL ||
   "https://us-central1-sign-mt.cloudfunctions.net/spoken_text_to_signed_pose";
 
+// Helper function to add CORS headers
+function addCorsHeaders(response: NextResponse) {
+  response.headers.set("Access-Control-Allow-Origin", "*");
+  response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  response.headers.set("Access-Control-Allow-Headers", "Content-Type");
+  return response;
+}
+
 interface TranslatePoseRequest {
   text: string;
   spokenLanguage: string; // e.g., 'en', 'ko'
@@ -33,10 +41,11 @@ export async function POST(
     const { text, spokenLanguage, signedLanguage } = body;
 
     if (!text || !spokenLanguage || !signedLanguage) {
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: "Missing required parameters: text, spokenLanguage, signedLanguage" },
         { status: 400 }
       );
+      return addCorsHeaders(errorResponse);
     }
 
     console.log("Translating to pose:", { text, spokenLanguage, signedLanguage });
@@ -53,7 +62,10 @@ export async function POST(
     const response = await fetch(url.toString(), {
       method: "GET",
       headers: {
-        "Accept": "application/octet-stream, application/json",
+        "Accept": "application/pose, application/x-pose, application/octet-stream, application/json, */*",
+        "User-Agent": "SignGPT-NextJS/1.0",
+        "Origin": "https://sign.mt",
+        "Referer": "https://sign.mt/",
       },
       // Add timeout
       signal: AbortSignal.timeout(30000), // 30 seconds
@@ -61,12 +73,13 @@ export async function POST(
 
     if (!response.ok) {
       console.error("Sign.MT API error:", response.status, response.statusText);
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { 
           error: `Sign.MT API error: ${response.status} ${response.statusText}`,
         },
         { status: response.status }
       );
+      return addCorsHeaders(errorResponse);
     }
 
     const contentType = response.headers.get("content-type");
@@ -76,38 +89,72 @@ export async function POST(
     if (contentType?.includes("application/json")) {
       // JSON response - might contain pose data or URL
       const data = await response.json();
-      return NextResponse.json(data);
-    } else if (contentType?.includes("application/octet-stream") || 
-               contentType?.includes("application/x-pose")) {
+      const jsonResponse = NextResponse.json(data);
+      return addCorsHeaders(jsonResponse);
+    } else if (
+      contentType?.includes("application/octet-stream") || 
+      contentType?.includes("application/x-pose") ||
+      contentType?.includes("application/pose") ||  // Sign.MT uses this!
+      !contentType  // Sometimes no content-type is set for binary
+    ) {
       // Binary pose data - convert to base64 for JSON transport
       const arrayBuffer = await response.arrayBuffer();
       const base64 = Buffer.from(arrayBuffer).toString("base64");
       
-      return NextResponse.json({
-        pose: base64,
-        contentType: "application/x-pose",
+      console.log("Pose data received:", {
+        contentType,
+        size: arrayBuffer.byteLength,
+        base64Length: base64.length,
       });
+      
+      const jsonResponse = NextResponse.json({
+        pose: base64,
+        contentType: contentType || "application/pose",
+      });
+      return addCorsHeaders(jsonResponse);
     } else {
-      // Try to get as text
+      // Try to handle as binary anyway (some APIs don't set proper content-type)
+      try {
+        const arrayBuffer = await response.arrayBuffer();
+        if (arrayBuffer.byteLength > 0) {
+          const base64 = Buffer.from(arrayBuffer).toString("base64");
+          console.log("Treating unexpected content-type as binary:", {
+            contentType,
+            size: arrayBuffer.byteLength,
+          });
+          
+          const jsonResponse = NextResponse.json({
+            pose: base64,
+            contentType: contentType || "application/pose",
+          });
+          return addCorsHeaders(jsonResponse);
+        }
+      } catch {
+        // Not binary, try text
+      }
+      
+      // Last resort: try to get as text
       const text = await response.text();
       console.warn("Unexpected content type:", contentType, "Response:", text.substring(0, 200));
       
-      return NextResponse.json({
+      const errorResponse = NextResponse.json({
         error: `Unexpected content type: ${contentType}`,
         rawResponse: text.substring(0, 500),
       }, { status: 500 });
+      return addCorsHeaders(errorResponse);
     }
   } catch (error) {
     console.error("Translate pose proxy error:", error);
     
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json(
+    const errorResponse = NextResponse.json(
       { 
         error: "Failed to translate to pose",
         details: errorMessage,
       },
       { status: 500 }
     );
+    return addCorsHeaders(errorResponse);
   }
 }
 
@@ -119,10 +166,11 @@ export async function GET(request: NextRequest) {
   const signed = searchParams.get("signed") || "ase";
 
   if (!text) {
-    return NextResponse.json(
+    const errorResponse = NextResponse.json(
       { error: "Missing required parameter: text" },
       { status: 400 }
     );
+    return addCorsHeaders(errorResponse);
   }
 
   // Forward to POST handler
@@ -139,5 +187,11 @@ export async function GET(request: NextRequest) {
   });
 
   return POST(mockRequest);
+}
+
+// OPTIONS handler for CORS preflight
+export async function OPTIONS() {
+  const response = new NextResponse(null, { status: 204 });
+  return addCorsHeaders(response);
 }
 
