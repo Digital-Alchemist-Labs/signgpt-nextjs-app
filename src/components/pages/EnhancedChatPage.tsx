@@ -264,6 +264,80 @@ export default function EnhancedChatPage({
     messages, // Add messages to dependencies since new messages trigger video display
   ]);
 
+  // Fallback connection to localhost for development
+  const tryLocalConnection = useCallback(() => {
+    if (process.env.NODE_ENV !== "development") return;
+
+    try {
+      console.log("Attempting localhost connection...");
+      const localWsUrl = "ws://localhost:8000/ws";
+
+      wsRef.current = new WebSocket(localWsUrl);
+
+      wsRef.current.onopen = () => {
+        setIsWebSocketConnected(true);
+        setWebSocketError(null);
+        console.log("✅ WebSocket connected to localhost!");
+      };
+
+      wsRef.current.onclose = (event) => {
+        setIsWebSocketConnected(false);
+        console.log(
+          "❌ Localhost WebSocket disconnected:",
+          event.code,
+          event.reason
+        );
+      };
+
+      wsRef.current.onerror = (error) => {
+        const target = error.target as WebSocket | null;
+        const errorDetails = {
+          type: error.type,
+          target: target?.url || "Unknown URL",
+          readyState: target?.readyState || "Unknown state",
+          timestamp: new Date().toISOString(),
+        };
+
+        console.error("❌ Localhost WebSocket 연결 오류:", errorDetails);
+        setIsWebSocketConnected(false);
+        setWebSocketError(
+          "로컬 서버 연결에도 실패했습니다. 수어 인식 기능을 사용할 수 없습니다."
+        );
+      };
+
+      wsRef.current.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          // Same message handling as primary connection
+          if (data.type === "keypoints_added") {
+            setFrameCount(data.total_frames);
+          } else if (data.type === "recognition_result") {
+            setRecognitionResult(data);
+
+            if (isSignRecognitionActive) {
+              setRecognitionHistory((prev) => [
+                ...prev,
+                {
+                  recognized_word: data.recognized_word,
+                  confidence: data.confidence,
+                  timestamp: data.timestamp,
+                },
+              ]);
+            }
+          } else if (data.type === "cleared") {
+            setFrameCount(0);
+            setRecognitionResult(null);
+          }
+        } catch (error) {
+          console.error("Error parsing localhost WebSocket message:", error);
+        }
+      };
+    } catch (error) {
+      console.error("Error connecting to localhost WebSocket:", error);
+      setIsWebSocketConnected(false);
+    }
+  }, [isSignRecognitionActive]);
+
   // WebSocket connection functions with enhanced error handling (보안 강화된 프록시 방식)
   const connectWebSocket = useCallback(async () => {
     try {
@@ -445,81 +519,7 @@ export default function EnhancedChatPage({
       console.error("Error connecting to WebSocket:", error);
       setIsWebSocketConnected(false);
     }
-  }, [isWebSocketConnected, lastRecognitionTime, tryLocalConnection]);
-
-  // Fallback connection to localhost for development
-  const tryLocalConnection = useCallback(() => {
-    if (process.env.NODE_ENV !== "development") return;
-
-    try {
-      console.log("Attempting localhost connection...");
-      const localWsUrl = "ws://localhost:8000/ws";
-
-      wsRef.current = new WebSocket(localWsUrl);
-
-      wsRef.current.onopen = () => {
-        setIsWebSocketConnected(true);
-        setWebSocketError(null);
-        console.log("✅ WebSocket connected to localhost!");
-      };
-
-      wsRef.current.onclose = (event) => {
-        setIsWebSocketConnected(false);
-        console.log(
-          "❌ Localhost WebSocket disconnected:",
-          event.code,
-          event.reason
-        );
-      };
-
-      wsRef.current.onerror = (error) => {
-        const target = error.target as WebSocket | null;
-        const errorDetails = {
-          type: error.type,
-          target: target?.url || "Unknown URL",
-          readyState: target?.readyState || "Unknown state",
-          timestamp: new Date().toISOString(),
-        };
-
-        console.error("❌ Localhost WebSocket 연결 오류:", errorDetails);
-        setIsWebSocketConnected(false);
-        setWebSocketError(
-          "로컬 서버 연결에도 실패했습니다. 수어 인식 기능을 사용할 수 없습니다."
-        );
-      };
-
-      wsRef.current.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          // Same message handling as primary connection
-          if (data.type === "keypoints_added") {
-            setFrameCount(data.total_frames);
-          } else if (data.type === "recognition_result") {
-            setRecognitionResult(data);
-
-            if (isSignRecognitionActive) {
-              setRecognitionHistory((prev) => [
-                ...prev,
-                {
-                  recognized_word: data.recognized_word,
-                  confidence: data.confidence,
-                  timestamp: data.timestamp,
-                },
-              ]);
-            }
-          } else if (data.type === "cleared") {
-            setFrameCount(0);
-            setRecognitionResult(null);
-          }
-        } catch (error) {
-          console.error("Error parsing localhost WebSocket message:", error);
-        }
-      };
-    } catch (error) {
-      console.error("Error connecting to localhost WebSocket:", error);
-      setIsWebSocketConnected(false);
-    }
-  }, [isSignRecognitionActive]);
+  }, [isSignRecognitionActive, isWebSocketConnected, lastRecognitionTime, tryLocalConnection]);
 
   const disconnectWebSocket = useCallback(() => {
     if (wsRef.current) {
@@ -537,6 +537,17 @@ export default function EnhancedChatPage({
       disconnectWebSocket();
     };
   }, [connectWebSocket, disconnectWebSocket]);
+
+  // Start recognition
+  const startRecognition = useCallback(() => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(
+        JSON.stringify({
+          action: "recognize",
+        })
+      );
+    }
+  }, []);
 
   // WebSocket keypoint sending and auto-recognition (from ChatPage)
   const sendKeypoints = useCallback(
@@ -560,17 +571,6 @@ export default function EnhancedChatPage({
     },
     [isAutoMode, startRecognition]
   );
-
-  // Start recognition
-  const startRecognition = useCallback(() => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(
-        JSON.stringify({
-          action: "recognize",
-        })
-      );
-    }
-  }, []);
 
   // Clear data
   const clearData = useCallback(() => {

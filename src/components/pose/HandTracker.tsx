@@ -177,7 +177,7 @@ const HandTracker = forwardRef<HandTrackerRef, HandTrackerProps>(
     }, []);
 
     // 카메라 초기화 함수
-    const initializeCamera = async () => {
+    const initializeCamera = useCallback(async () => {
       console.log("카메라 초기화 시작...");
 
       // DOM 요소 재확인 및 대기
@@ -542,7 +542,7 @@ const HandTracker = forwardRef<HandTrackerRef, HandTrackerProps>(
 
       handsRef.current = holistic;
       setIsInitialized(true);
-    };
+    }, [onKeypointsDetected, showKeypoints, isAutoRecording, isRecording]);
 
     // MediaPipe 초기화
     useEffect(() => {

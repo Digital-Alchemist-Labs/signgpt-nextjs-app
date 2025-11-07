@@ -609,6 +609,18 @@ export default function ChatPage() {
     setTimeout(() => sendMessage(), 100);
   }, [messages, sendMessage]);
 
+  // 인식 시작
+  const startRecognition = useCallback(() => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      setIsProcessing(true);
+      wsRef.current.send(
+        JSON.stringify({
+          action: "recognize",
+        })
+      );
+    }
+  }, []);
+
   // 키포인트 전송 및 자동 인식 (원본 signgpt-front 방식)
   const sendKeypoints = useCallback(
     (keypoints: number[][]) => {
@@ -631,18 +643,6 @@ export default function ChatPage() {
     },
     [isAutoMode, startRecognition]
   );
-
-  // 인식 시작
-  const startRecognition = useCallback(() => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      setIsProcessing(true);
-      wsRef.current.send(
-        JSON.stringify({
-          action: "recognize",
-        })
-      );
-    }
-  }, []);
 
   // 데이터 초기화
   const clearData = useCallback(() => {
