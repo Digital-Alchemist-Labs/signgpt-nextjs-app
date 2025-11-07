@@ -6,6 +6,7 @@ import React, {
   useState,
   forwardRef,
   useImperativeHandle,
+  useCallback,
 } from "react";
 
 interface HandTrackerProps {
