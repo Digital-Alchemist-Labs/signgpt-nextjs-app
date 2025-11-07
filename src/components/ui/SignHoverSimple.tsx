@@ -185,6 +185,19 @@ export default function SignHover({ config = {} }: SignHoverSimpleProps) {
     }, mergedConfig.hideDelay);
   }, [hideTooltip, mergedConfig.hideDelay]);
 
+  const handleTooltipMouseEnter = useCallback(() => {
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
+    }
+  }, []);
+
+  const handleTooltipMouseLeave = useCallback(() => {
+    hideTimeoutRef.current = setTimeout(() => {
+      hideTooltip();
+    }, mergedConfig.hideDelay);
+  }, [hideTooltip, mergedConfig.hideDelay]);
+
   useEffect(() => {
     if (!mergedConfig.enabled) return;
 
@@ -229,6 +242,8 @@ export default function SignHover({ config = {} }: SignHoverSimpleProps) {
         left: `${tooltipPosition.x}px`,
         top: `${tooltipPosition.y}px`,
       }}
+      onMouseEnter={handleTooltipMouseEnter}
+      onMouseLeave={handleTooltipMouseLeave}
     >
       <div className="flex flex-col h-full">
         {/* Header */}
