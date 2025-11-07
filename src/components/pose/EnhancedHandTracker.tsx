@@ -513,7 +513,7 @@ const HandTracker = forwardRef<HandTrackerRef, HandTrackerProps>(
           streamRef.current.getTracks().forEach((track) => track.stop());
         }
       };
-    }, [elementsReady]);
+    }, [elementsReady, initializeCamera]);
 
     // 카메라 재시작 함수
     const retryCamera = async () => {

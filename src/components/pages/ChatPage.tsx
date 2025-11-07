@@ -153,7 +153,7 @@ export default function ChatPage() {
     return () => {
       observer.disconnect();
     };
-  }, [hadFocusRef.current]);
+  }, []);
 
   // Handle focus tracking
   const handleInputFocus = useCallback(() => {
@@ -454,7 +454,7 @@ export default function ChatPage() {
         "WebSocket 서버에 연결할 수 없습니다. 기본 채팅 모드로 작동합니다."
       );
     }
-  }, []);
+  }, [isSignRecognitionActive, isWebSocketConnected, lastRecognitionTime]);
 
   // WebSocket 연결 해제
   const disconnectWebSocket = useCallback(() => {
@@ -629,7 +629,7 @@ export default function ChatPage() {
         }
       }
     },
-    [isAutoMode]
+    [isAutoMode, startRecognition]
   );
 
   // 인식 시작
@@ -856,11 +856,7 @@ export default function ChatPage() {
     setRecognitionHistory([]);
   }, [
     recognitionHistory,
-    setMessages,
-    setIsLoading,
-    setError,
-    setCurrentResponseText,
-    setShowSignLanguage,
+    isSignRecognitionActive,
   ]);
 
   // Restart camera

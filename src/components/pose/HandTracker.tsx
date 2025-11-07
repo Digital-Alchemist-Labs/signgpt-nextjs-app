@@ -594,7 +594,7 @@ const HandTracker = forwardRef<HandTrackerRef, HandTrackerProps>(
           streamRef.current.getTracks().forEach((track) => track.stop());
         }
       };
-    }, [elementsReady]);
+    }, [elementsReady, initializeCamera]);
 
     // Camera restart function
     const retryCamera = async () => {

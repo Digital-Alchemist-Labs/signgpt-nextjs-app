@@ -117,23 +117,23 @@ export class TensorflowService {
 
   private createMockTensorflow(): TensorflowLike {
     return {
-      tensor2d: (_data: number[][]) => this.createMockTensor(),
-      scalar: (_value: number) => this.createMockTensor(),
-      dot: (_a: TensorLike, _b: TensorLike) => this.createMockTensor(),
-      pow: (_tensor: TensorLike, _exponent: number) => this.createMockTensor(),
+      tensor2d: () => this.createMockTensor(),
+      scalar: () => this.createMockTensor(),
+      dot: () => this.createMockTensor(),
+      pow: () => this.createMockTensor(),
     };
   }
 
   private createMockTensor(): TensorLike {
     return {
-      slice: (_start: number, _size: number) => this.createMockTensor(),
-      sub: (_other: TensorLike) => this.createMockTensor(),
-      mul: (_other: TensorLike) => this.createMockTensor(),
-      dot: (_other: TensorLike) => this.createMockTensor(),
+      slice: () => this.createMockTensor(),
+      sub: () => this.createMockTensor(),
+      mul: () => this.createMockTensor(),
+      dot: () => this.createMockTensor(),
       sum: () => ({ sqrt: () => this.createMockTensor() }),
-      pow: (_exp: number) => this.createMockTensor(),
+      pow: () => this.createMockTensor(),
       arraySync: () => [[0, 0, 0]],
-      div: (_other: TensorLike) => this.createMockTensor(),
+      div: () => this.createMockTensor(),
     };
   }
 

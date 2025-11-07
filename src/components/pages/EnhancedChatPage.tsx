@@ -173,7 +173,7 @@ export default function EnhancedChatPage({
     return () => {
       observer.disconnect();
     };
-  }, [hadFocusRef.current]);
+  }, []);
 
   // Handle focus tracking
   const handleInputFocus = useCallback(() => {
@@ -445,7 +445,7 @@ export default function EnhancedChatPage({
       console.error("Error connecting to WebSocket:", error);
       setIsWebSocketConnected(false);
     }
-  }, [isSignRecognitionActive]);
+  }, [isWebSocketConnected, lastRecognitionTime, tryLocalConnection]);
 
   // Fallback connection to localhost for development
   const tryLocalConnection = useCallback(() => {
@@ -558,7 +558,7 @@ export default function EnhancedChatPage({
         }
       }
     },
-    [isAutoMode]
+    [isAutoMode, startRecognition]
   );
 
   // Start recognition
@@ -808,11 +808,7 @@ export default function EnhancedChatPage({
     setRecognitionHistory([]);
   }, [
     recognitionHistory,
-    setMessages,
-    setIsLoading,
-    setError,
-    setCurrentResponseText,
-    setShowSignLanguage,
+    isSignRecognitionActive,
   ]);
 
   // Restart camera

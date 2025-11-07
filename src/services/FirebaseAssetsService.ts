@@ -62,13 +62,13 @@ export class FirebaseAssetsService {
         // Return the direct Firebase Storage URL
         return { downloadUrl: this.buildRemotePath(path) };
       },
-      getMetadata: async (_path: string): Promise<FileMetadata> => {
+      getMetadata: async (): Promise<FileMetadata> => {
         return {
           size: 1024, // Mock size
           updatedAt: new Date().toISOString(),
         };
       },
-      listFiles: async (_options: { path: string }) => {
+      listFiles: async () => {
         // Mock implementation - in reality this would list actual files
         return { items: [] };
       },

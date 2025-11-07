@@ -47,7 +47,7 @@ export class OpenVinoSignRecognitionService {
       // For now, we'll use a mock implementation
       // In production, you would load the actual OpenVINO model here
       this.model = {
-        predict: (input: Float32Array) => {
+        predict: () => {
           // Mock prediction - returns random probabilities
           const numClasses = this.koreanWords.length;
           const output = new Float32Array(numClasses);
@@ -111,8 +111,6 @@ export class OpenVinoSignRecognitionService {
     const keypoints = this.extractHandKeypoints(pose);
     if (!keypoints) return;
 
-    // Combine left and right hand keypoints (84 total values)
-    const combinedKeypoints = [...keypoints.left, ...keypoints.right];
     this.handsKeypointsBuffer.push({
       left: keypoints.left,
       right: keypoints.right,

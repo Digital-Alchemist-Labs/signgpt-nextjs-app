@@ -788,8 +788,6 @@ export default function EnhancedTextInput({
           autoCorrect="off"
           autoCapitalize="off"
           tabIndex={hadFocusRef.current ? 0 : -1}
-          aria-expanded="true"
-          role="textbox"
           contentEditable="true"
           suppressContentEditableWarning={true}
           data-sign-text="text input"
