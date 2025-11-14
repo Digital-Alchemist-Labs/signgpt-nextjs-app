@@ -59,23 +59,56 @@ export async function POST(
     console.log("Fetching from Sign.MT:", url.toString());
 
     // Fetch from Sign.MT Cloud Function
-    const response = await fetch(url.toString(), {
-      method: "GET",
-      headers: {
-        "Accept": "application/pose, application/x-pose, application/octet-stream, application/json, */*",
-        "User-Agent": "SignGPT-NextJS/1.0",
-        "Origin": "https://sign.mt",
-        "Referer": "https://sign.mt/",
-      },
-      // Add timeout
-      signal: AbortSignal.timeout(30000), // 30 seconds
-    });
+    // Note: Sign.MT may reject requests from non-sign.mt domains
+    // This is a known limitation of their API
+    let response;
+    try {
+      response = await fetch(url.toString(), {
+        method: "GET",
+        headers: {
+          "Accept": "application/pose, application/x-pose, application/octet-stream, application/json, */*",
+          "User-Agent": "SignGPT-NextJS/1.0",
+          "Origin": "https://sign.mt",
+          "Referer": "https://sign.mt/",
+        },
+        // Add timeout
+        signal: AbortSignal.timeout(30000), // 30 seconds
+      });
+    } catch (fetchError) {
+      console.error("Sign.MT fetch error:", fetchError);
+      // Return a graceful error that tells clients to use fallback
+      const errorResponse = NextResponse.json(
+        { 
+          error: "Sign.MT API unavailable",
+          fallback: true,
+          message: "Please use local pose generation",
+        },
+        { status: 503 }
+      );
+      return addCorsHeaders(errorResponse);
+    }
 
     if (!response.ok) {
       console.error("Sign.MT API error:", response.status, response.statusText);
+      
+      // If it's a 403/401 (access denied), suggest fallback
+      if (response.status === 403 || response.status === 401) {
+        const errorResponse = NextResponse.json(
+          { 
+            error: `Sign.MT API access denied (expected on Vercel deployment)`,
+            fallback: true,
+            message: "Using local pose generation instead",
+            details: `${response.status} ${response.statusText}`,
+          },
+          { status: 503 }
+        );
+        return addCorsHeaders(errorResponse);
+      }
+      
       const errorResponse = NextResponse.json(
         { 
           error: `Sign.MT API error: ${response.status} ${response.statusText}`,
+          fallback: true,
         },
         { status: response.status }
       );

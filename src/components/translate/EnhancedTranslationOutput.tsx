@@ -60,6 +60,12 @@ export default function EnhancedTranslationOutput({
           signedLanguage
         );
 
+        // If fallback is suggested, skip Sign.MT and use local generation
+        if (result.fallback) {
+          console.info("Sign.MT API unavailable (expected on Vercel), using local pose generation");
+          return null;
+        }
+
         if (result.error) {
           console.error("Failed to load pose data:", result.error);
           setVideoError(`Failed to load pose: ${result.error}`);

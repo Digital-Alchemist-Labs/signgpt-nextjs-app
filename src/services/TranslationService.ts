@@ -365,6 +365,7 @@ export class TranslationService {
     poseUrl?: string;
     contentType?: string;
     error?: string;
+    fallback?: boolean;
   }> {
     try {
       // Normalize the signed language code for API compatibility
@@ -389,19 +390,52 @@ export class TranslationService {
         }),
       });
 
+      // Handle graceful fallback for 503 or access denied
+      if (response.status === 503 || response.status === 403 || response.status === 401) {
+        const errorData = await response.json();
+        console.info(
+          "Sign.MT API unavailable (expected on Vercel), using local fallback:",
+          errorData
+        );
+        return {
+          error: errorData.error || "Sign.MT API unavailable",
+          fallback: true,
+        };
+      }
+
       if (!response.ok) {
         const errorData = await response.json();
+        console.warn("Sign.MT API error:", errorData);
+        
+        // Check if server suggests fallback
+        if (errorData.fallback) {
+          return {
+            error: errorData.error || `HTTP error! status: ${response.status}`,
+            fallback: true,
+          };
+        }
+        
         throw new Error(
           errorData.error || `HTTP error! status: ${response.status}`
         );
       }
 
       const data = await response.json();
+      
+      // Check if response suggests fallback
+      if (data.fallback) {
+        return {
+          error: data.error || "Sign.MT API unavailable",
+          fallback: true,
+        };
+      }
+      
       return data;
     } catch (error) {
       console.error("Failed to fetch pose data:", error);
       return {
         error: error instanceof Error ? error.message : "Unknown error",
+        fallback: true, // Always suggest fallback on error
       };
     }
   }
@@ -416,6 +450,7 @@ export class TranslationService {
       poseUrl?: string;
       contentType?: string;
       error?: string;
+      fallback?: boolean;
     }>
   >();
 
@@ -428,6 +463,7 @@ export class TranslationService {
     poseUrl?: string;
     contentType?: string;
     error?: string;
+    fallback?: boolean;
   }> {
     const cacheKey = `${text}:${spokenLanguage}:${signedLanguage}`;
 

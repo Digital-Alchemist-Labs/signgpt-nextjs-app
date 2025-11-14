@@ -1435,6 +1435,12 @@ function SignLanguageDisplay({ text }: { text: string }) {
           signedLanguage
         );
 
+        // If fallback is suggested, skip Sign.MT and use local generation
+        if (result.fallback) {
+          console.info("[Chat] Sign.MT API unavailable, using local pose generation");
+          return null;
+        }
+
         if (result.error) {
           console.error("[Chat] Failed to load pose data:", result.error);
           return null;
