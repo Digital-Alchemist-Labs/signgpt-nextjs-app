@@ -289,20 +289,17 @@ export default function EnhancedChatPage({
         );
       };
 
-      wsRef.current.onerror = (error) => {
-        const target = error.target as WebSocket | null;
-        const errorDetails = {
-          type: error.type,
-          target: target?.url || "Unknown URL",
-          readyState: target?.readyState || "Unknown state",
-          timestamp: new Date().toISOString(),
-        };
-
-        console.error("❌ Localhost WebSocket 연결 오류:", errorDetails);
+      wsRef.current.onerror = () => {
+        // Silently handle localhost connection failure
+        console.info("ℹ️ [Enhanced] Localhost WebSocket도 사용 불가");
         setIsWebSocketConnected(false);
-        setWebSocketError(
-          "로컬 서버 연결에도 실패했습니다. 수어 인식 기능을 사용할 수 없습니다."
-        );
+
+        // Only show error if user tries to use sign recognition
+        if (isSignRecognitionActive) {
+          setWebSocketError(
+            "수어 인식 서버에 연결할 수 없습니다. 나중에 다시 시도해주세요."
+          );
+        }
       };
 
       wsRef.current.onmessage = (event) => {
@@ -380,13 +377,18 @@ export default function EnhancedChatPage({
       wsRef.current.onclose = (event) => {
         clearTimeout(connectionTimeout);
         setIsWebSocketConnected(false);
-        console.log("❌ WebSocket disconnected:", event.code, event.reason);
 
-        // Auto-reconnect with backoff
-        setTimeout(() => {
-          console.log("Attempting WebSocket reconnection...");
-          connectWebSocket();
-        }, 5000);
+        // Only log if it was a clean close or unexpected disconnect
+        if (event.code !== 1000) {
+          console.info(
+            "ℹ️ [Enhanced] WebSocket 연결 종료:",
+            event.code,
+            event.reason || "정상 종료"
+          );
+        }
+
+        // Don't auto-reconnect - user can manually retry if needed
+        // This prevents console spam when server is unavailable
       };
 
       wsRef.current.onerror = (error) => {
@@ -399,11 +401,19 @@ export default function EnhancedChatPage({
           timestamp: new Date().toISOString(),
         };
 
-        console.error("❌ WebSocket 연결 오류:", errorDetails);
-        setIsWebSocketConnected(false);
-        setWebSocketError(
-          "서버 연결에 실패했습니다. 수어 인식 기능이 제한될 수 있습니다."
+        // Use warn instead of error since this is expected when server is unavailable
+        console.warn(
+          "⚠️ [Enhanced] WebSocket 연결 불가 (정상 - 서버 사용 불가):",
+          errorDetails
         );
+        setIsWebSocketConnected(false);
+
+        // Only set error message if user tries to use the feature
+        if (isSignRecognitionActive) {
+          setWebSocketError(
+            "수어 인식 서버에 연결할 수 없습니다. 나중에 다시 시도해주세요."
+          );
+        }
       };
 
       wsRef.current.onmessage = (event) => {
@@ -516,10 +526,20 @@ export default function EnhancedChatPage({
         }
       };
     } catch (error) {
-      console.error("Error connecting to WebSocket:", error);
+      // Silently handle WebSocket connection failures - this is expected behavior
+      console.info(
+        "ℹ️ [Enhanced] WebSocket 서버를 사용할 수 없습니다. 기본 채팅 모드로 작동합니다.",
+        process.env.NODE_ENV === "development" ? error : ""
+      );
       setIsWebSocketConnected(false);
+      // Don't set error message - let user discover this only if they try to use sign recognition
     }
-  }, [isSignRecognitionActive, isWebSocketConnected, lastRecognitionTime, tryLocalConnection]);
+  }, [
+    isSignRecognitionActive,
+    isWebSocketConnected,
+    lastRecognitionTime,
+    tryLocalConnection,
+  ]);
 
   const disconnectWebSocket = useCallback(() => {
     if (wsRef.current) {
@@ -806,10 +826,7 @@ export default function EnhancedChatPage({
     // Clear recognition history AFTER processing (히스토리 처리 후 초기화)
     console.log("🧹 [Enhanced] Clearing recognition history after processing");
     setRecognitionHistory([]);
-  }, [
-    recognitionHistory,
-    isSignRecognitionActive,
-  ]);
+  }, [recognitionHistory, isSignRecognitionActive]);
 
   // Restart camera
   const retryCamera = useCallback(() => {
@@ -1444,33 +1461,128 @@ function SignLanguageDisplay({ text }: { text: string }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [poseData, setPoseData] = useState<Record<string, unknown> | null>(
+    null
+  );
   const videoRef = useRef<HTMLVideoElement>(null);
+  const translationServiceRef = useRef(new TranslationService());
+
+  // Load pose data from Sign.MT via proxy
+  const loadPoseData = useCallback(
+    async (text: string, spokenLanguage: string, signedLanguage: string) => {
+      try {
+        console.log("[Enhanced Chat] Loading pose data via proxy:", {
+          text,
+          spokenLanguage,
+          signedLanguage,
+        });
+
+        const result = await translationServiceRef.current.fetchPoseDataCached(
+          text,
+          spokenLanguage,
+          signedLanguage
+        );
+
+        if (result.error) {
+          console.error(
+            "[Enhanced Chat] Failed to load pose data:",
+            result.error
+          );
+          return null;
+        }
+
+        if (result.pose) {
+          console.log(
+            "[Enhanced Chat] Pose data loaded successfully:",
+            result.contentType
+          );
+
+          // If pose is base64 encoded, decode it
+          if (typeof result.pose === "string") {
+            try {
+              const binaryString = atob(result.pose);
+              const bytes = new Uint8Array(binaryString.length);
+              for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+              }
+              const blob = new Blob([bytes], {
+                type: result.contentType || "application/x-pose",
+              });
+              const poseUrl = URL.createObjectURL(blob);
+              setPoseData({ url: poseUrl, blob });
+              return poseUrl;
+            } catch (error) {
+              console.error(
+                "[Enhanced Chat] Failed to decode pose data:",
+                error
+              );
+            }
+          } else {
+            // Assume it's already an object
+            setPoseData(result.pose as Record<string, unknown>);
+            return result.pose;
+          }
+        }
+
+        if (result.poseUrl) {
+          console.log("[Enhanced Chat] Pose URL returned:", result.poseUrl);
+          setPoseData({ url: result.poseUrl });
+          return result.poseUrl;
+        }
+
+        return null;
+      } catch (error) {
+        console.error("[Enhanced Chat] Exception loading pose data:", error);
+        return null;
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     if (!text) return;
 
-    setIsLoading(true);
-    setError(null);
-    setVideoUrl(""); // Clear previous video
+    const initializePose = async () => {
+      setIsLoading(true);
+      setError(null);
+      setVideoUrl(""); // Clear previous video
+      setPoseData(null);
 
-    try {
-      // Generate pose URL using the translation service
-      const translationService = new TranslationService();
-      const generatedPoseUrl = translationService.translateSpokenToSigned(
-        text,
-        "en", // English
-        "ase" // American Sign Language
-      );
+      try {
+        // Generate pose URL using the translation service
+        const generatedPoseUrl =
+          translationServiceRef.current.translateSpokenToSigned(
+            text,
+            "en", // English
+            "ase" // American Sign Language
+          );
 
-      setPoseUrl(generatedPoseUrl);
-      console.log("[Enhanced] Generated pose URL for chat response:", generatedPoseUrl);
-    } catch (err) {
-      console.error("[Enhanced] Failed to generate pose URL:", err);
-      setError("Failed to generate sign language");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [text]);
+        setPoseUrl(generatedPoseUrl);
+        console.log(
+          "[Enhanced Chat] Generated pose URL for chat response:",
+          generatedPoseUrl
+        );
+
+        // Try to load actual pose data from Sign.MT via proxy
+        const poseResult = await loadPoseData(text, "en", "ase");
+
+        if (poseResult) {
+          console.log(
+            "[Enhanced Chat] Pose data loaded successfully from Sign.MT"
+          );
+        } else {
+          console.log("[Enhanced Chat] Using fallback pose URL");
+        }
+      } catch (err) {
+        console.error("[Enhanced Chat] Failed to generate pose URL:", err);
+        setError("Failed to generate sign language");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializePose();
+  }, [text, loadPoseData]);
 
   // Generate video from pose data
   const generateVideo = useCallback(async () => {
@@ -1535,7 +1647,7 @@ function SignLanguageDisplay({ text }: { text: string }) {
       let frameCount = 0;
       const isVeryShortText = text.length <= 1;
       const isShortText = text.length <= 3;
-      
+
       let minFrames, textBasedFrames;
       if (isVeryShortText) {
         minFrames = 120;
@@ -1549,7 +1661,9 @@ function SignLanguageDisplay({ text }: { text: string }) {
       }
 
       const maxFrames = Math.max(minFrames, textBasedFrames);
-      const textHash = text.split("").reduce((hash, char) => hash + char.charCodeAt(0), 0);
+      const textHash = text
+        .split("")
+        .reduce((hash, char) => hash + char.charCodeAt(0), 0);
 
       const drawFrame = () => {
         // Dark background
@@ -1627,13 +1741,22 @@ function SignLanguageDisplay({ text }: { text: string }) {
           const armAnimation = Math.sin(time + textHash * 0.01) * 0.3;
           leftElbowX = leftShoulderX - 25 + Math.sin(time + textVariation) * 35;
           leftElbowY = shoulderY + 50 + armAnimation * 15;
-          leftHandX = leftElbowX - 15 + Math.cos(time + textHash * 0.01 + textVariation) * 40;
-          leftHandY = leftElbowY + 35 + Math.sin(time * 1.5 + textVariation) * 25;
+          leftHandX =
+            leftElbowX -
+            15 +
+            Math.cos(time + textHash * 0.01 + textVariation) * 40;
+          leftHandY =
+            leftElbowY + 35 + Math.sin(time * 1.5 + textVariation) * 25;
 
-          rightElbowX = rightShoulderX + 25 + Math.cos(time + textVariation) * 35;
+          rightElbowX =
+            rightShoulderX + 25 + Math.cos(time + textVariation) * 35;
           rightElbowY = shoulderY + 50 - armAnimation * 15;
-          rightHandX = rightElbowX + 15 + Math.sin(time + textHash * 0.01 + textVariation) * 40;
-          rightHandY = rightElbowY + 35 + Math.cos(time * 1.5 + textVariation) * 25;
+          rightHandX =
+            rightElbowX +
+            15 +
+            Math.sin(time + textHash * 0.01 + textVariation) * 40;
+          rightHandY =
+            rightElbowY + 35 + Math.cos(time * 1.5 + textVariation) * 25;
         }
 
         // Draw arms
@@ -1669,7 +1792,8 @@ function SignLanguageDisplay({ text }: { text: string }) {
             fingerX = leftHandX + Math.cos(fingerAngle) * 12;
             fingerY = leftHandY + Math.sin(fingerAngle) * 12;
           } else {
-            fingerAngle = (i - 2) * 0.3 + Math.sin(time * 3 + i + textHash) * 0.2;
+            fingerAngle =
+              (i - 2) * 0.3 + Math.sin(time * 3 + i + textHash) * 0.2;
             fingerX = leftHandX + Math.cos(fingerAngle) * 15;
             fingerY = leftHandY + Math.sin(fingerAngle) * 15;
           }
@@ -1695,7 +1819,8 @@ function SignLanguageDisplay({ text }: { text: string }) {
             fingerX = rightHandX + Math.cos(fingerAngle) * 12;
             fingerY = rightHandY + Math.sin(fingerAngle) * 12;
           } else {
-            fingerAngle = (i - 2) * 0.3 + Math.cos(time * 2.8 + i + textHash) * 0.2;
+            fingerAngle =
+              (i - 2) * 0.3 + Math.cos(time * 2.8 + i + textHash) * 0.2;
             fingerX = rightHandX + Math.cos(fingerAngle) * 15;
             fingerY = rightHandY + Math.sin(fingerAngle) * 15;
           }
@@ -1736,7 +1861,11 @@ function SignLanguageDisplay({ text }: { text: string }) {
         ctx.fillStyle = "#00ffff";
         ctx.font = "11px Arial";
         ctx.textAlign = "right";
-        ctx.fillText(`${frameCount + 1}/${maxFrames}`, canvas.width - 10, canvas.height - 10);
+        ctx.fillText(
+          `${frameCount + 1}/${maxFrames}`,
+          canvas.width - 10,
+          canvas.height - 10
+        );
 
         // Progress bar
         const barWidth = canvas.width - 20;
@@ -1824,7 +1953,14 @@ function SignLanguageDisplay({ text }: { text: string }) {
         {poseUrl && !videoUrl && !isLoading && !error && !isGeneratingVideo && (
           <div className="w-full h-full flex items-center justify-center p-2">
             <PoseViewer
-              src={poseUrl}
+              src={
+                poseData &&
+                typeof poseData === "object" &&
+                "url" in poseData &&
+                typeof poseData.url === "string"
+                  ? poseData.url
+                  : poseUrl
+              }
               className="w-full h-full"
               showControls={true}
               background="transparent"
@@ -1837,7 +1973,9 @@ function SignLanguageDisplay({ text }: { text: string }) {
           <div className="absolute inset-0 flex items-center justify-center bg-background/90">
             <div className="text-center space-y-2">
               <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-              <p className="text-xs text-muted-foreground">Generating video...</p>
+              <p className="text-xs text-muted-foreground">
+                Generating video...
+              </p>
             </div>
           </div>
         )}
@@ -1859,8 +1997,18 @@ function SignLanguageDisplay({ text }: { text: string }) {
                 </>
               ) : (
                 <>
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
                   </svg>
                   Generate Video
                 </>
@@ -1872,8 +2020,18 @@ function SignLanguageDisplay({ text }: { text: string }) {
                 onClick={handleDownload}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
               >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                <svg
+                  className="w-3 h-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  />
                 </svg>
                 Download
               </button>
@@ -1881,8 +2039,18 @@ function SignLanguageDisplay({ text }: { text: string }) {
                 onClick={generateVideo}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
               >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                <svg
+                  className="w-3 h-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
                 </svg>
                 Regenerate
               </button>

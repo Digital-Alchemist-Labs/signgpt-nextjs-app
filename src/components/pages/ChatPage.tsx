@@ -312,15 +312,14 @@ export default function ChatPage() {
 
       wsRef.current.onclose = (event) => {
         setIsWebSocketConnected(false);
-        console.log("❌ WebSocket 연결 끊김:", event.code, event.reason);
-
-        // 자동 재연결 시도 (개발 모드에서만)
-        if (process.env.NODE_ENV === "development") {
-          setTimeout(() => {
-            console.log("WebSocket 재연결 시도...");
-            connectWebSocket();
-          }, 3000);
+        
+        // Only log if it was a clean close or unexpected disconnect
+        if (event.code !== 1000) {
+          console.info("ℹ️ WebSocket 연결 종료:", event.code, event.reason || "정상 종료");
         }
+
+        // Don't auto-reconnect - user can manually retry if needed
+        // This prevents console spam when server is unavailable
       };
 
       wsRef.current.onerror = (error) => {
@@ -332,16 +331,14 @@ export default function ChatPage() {
           timestamp: new Date().toISOString(),
         };
 
-        console.error("❌ WebSocket 연결 오류:", errorDetails);
+        // Use warn instead of error since this is expected when server is unavailable
+        console.warn("⚠️ WebSocket 연결 불가 (정상 - 서버 사용 불가):", errorDetails);
         setIsWebSocketConnected(false);
-        setWebSocketError(
-          "서버 연결에 실패했습니다. 수어 인식 기능이 제한될 수 있습니다."
-        );
-
-        // WebSocket 연결 실패 시 사용자에게 알림
-        if (!isWebSocketConnected) {
-          console.warn(
-            "WebSocket 서버에 연결할 수 없습니다. 수어 인식 기능이 제한될 수 있습니다."
+        
+        // Only set error message if user tries to use the feature
+        if (isSignRecognitionActive) {
+          setWebSocketError(
+            "수어 인식 서버에 연결할 수 없습니다. 나중에 다시 시도해주세요."
           );
         }
       };
@@ -435,24 +432,14 @@ export default function ChatPage() {
         }
       };
     } catch (error) {
-      console.warn("⚠️ WebSocket 연결 설정 중 오류가 발생했습니다:", error);
-
-      // 네트워크 에러일 경우 조용히 처리
-      if (error instanceof TypeError && error.message.includes("fetch")) {
-        console.warn(
-          "ℹ️ WebSocket 서버를 사용할 수 없습니다. 기본 채팅 모드로 작동합니다."
-        );
-      } else {
-        console.warn("⚠️ WebSocket 연결 오류 상세:", {
-          name: error instanceof Error ? error.name : "Unknown",
-          message: error instanceof Error ? error.message : String(error),
-        });
-      }
+      // Silently handle WebSocket connection failures - this is expected behavior
+      console.info(
+        "ℹ️ WebSocket 서버를 사용할 수 없습니다. 기본 채팅 모드로 작동합니다.",
+        process.env.NODE_ENV === "development" ? error : ""
+      );
 
       setIsWebSocketConnected(false);
-      setWebSocketError(
-        "WebSocket 서버에 연결할 수 없습니다. 기본 채팅 모드로 작동합니다."
-      );
+      // Don't set error message - let user discover this only if they try to use sign recognition
     }
   }, [isSignRecognitionActive, isWebSocketConnected, lastRecognitionTime]);
 
@@ -1428,33 +1415,111 @@ function SignLanguageDisplay({ text }: { text: string }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [poseData, setPoseData] = useState<Record<string, unknown> | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const translationServiceRef = useRef(new TranslationService());
+
+  // Load pose data from Sign.MT via proxy
+  const loadPoseData = useCallback(
+    async (text: string, spokenLanguage: string, signedLanguage: string) => {
+      try {
+        console.log("[Chat] Loading pose data via proxy:", {
+          text,
+          spokenLanguage,
+          signedLanguage,
+        });
+
+        const result = await translationServiceRef.current.fetchPoseDataCached(
+          text,
+          spokenLanguage,
+          signedLanguage
+        );
+
+        if (result.error) {
+          console.error("[Chat] Failed to load pose data:", result.error);
+          return null;
+        }
+
+        if (result.pose) {
+          console.log("[Chat] Pose data loaded successfully:", result.contentType);
+
+          // If pose is base64 encoded, decode it
+          if (typeof result.pose === "string") {
+            try {
+              const binaryString = atob(result.pose);
+              const bytes = new Uint8Array(binaryString.length);
+              for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+              }
+              const blob = new Blob([bytes], {
+                type: result.contentType || "application/x-pose",
+              });
+              const poseUrl = URL.createObjectURL(blob);
+              setPoseData({ url: poseUrl, blob });
+              return poseUrl;
+            } catch (error) {
+              console.error("[Chat] Failed to decode pose data:", error);
+            }
+          } else {
+            // Assume it's already an object
+            setPoseData(result.pose as Record<string, unknown>);
+            return result.pose;
+          }
+        }
+
+        if (result.poseUrl) {
+          console.log("[Chat] Pose URL returned:", result.poseUrl);
+          setPoseData({ url: result.poseUrl });
+          return result.poseUrl;
+        }
+
+        return null;
+      } catch (error) {
+        console.error("[Chat] Exception loading pose data:", error);
+        return null;
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     if (!text) return;
 
-    setIsLoading(true);
-    setError(null);
-    setVideoUrl(""); // Clear previous video
+    const initializePose = async () => {
+      setIsLoading(true);
+      setError(null);
+      setVideoUrl(""); // Clear previous video
+      setPoseData(null);
 
-    try {
-      // Generate pose URL using the translation service
-      const translationService = new TranslationService();
-      const generatedPoseUrl = translationService.translateSpokenToSigned(
-        text,
-        "en", // English
-        "ase" // American Sign Language
-      );
+      try {
+        // Generate pose URL using the translation service
+        const generatedPoseUrl = translationServiceRef.current.translateSpokenToSigned(
+          text,
+          "en", // English
+          "ase" // American Sign Language
+        );
 
-      setPoseUrl(generatedPoseUrl);
-      console.log("Generated pose URL for chat response:", generatedPoseUrl);
-    } catch (err) {
-      console.error("Failed to generate pose URL:", err);
-      setError("Failed to generate sign language");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [text]);
+        setPoseUrl(generatedPoseUrl);
+        console.log("[Chat] Generated pose URL for chat response:", generatedPoseUrl);
+
+        // Try to load actual pose data from Sign.MT via proxy
+        const poseResult = await loadPoseData(text, "en", "ase");
+        
+        if (poseResult) {
+          console.log("[Chat] Pose data loaded successfully from Sign.MT");
+        } else {
+          console.log("[Chat] Using fallback pose URL");
+        }
+      } catch (err) {
+        console.error("[Chat] Failed to generate pose URL:", err);
+        setError("Failed to generate sign language");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializePose();
+  }, [text, loadPoseData]);
 
   // Generate video from pose data
   const generateVideo = useCallback(async () => {
@@ -1822,7 +1887,11 @@ function SignLanguageDisplay({ text }: { text: string }) {
 
         {poseUrl && !videoUrl && !isLoading && !error && !isGeneratingVideo && (
           <PoseViewer
-            src={poseUrl}
+            src={
+              poseData && typeof poseData === "object" && "url" in poseData && typeof poseData.url === "string"
+                ? poseData.url
+                : poseUrl
+            }
             className="w-full h-full"
             showControls={true}
             background="transparent"
