@@ -1424,14 +1424,18 @@ export default function ChatPage() {
 // Component to display sign language for chat responses
 function SignLanguageDisplay({ text }: { text: string }) {
   const [poseUrl, setPoseUrl] = useState<string>("");
+  const [videoUrl, setVideoUrl] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (!text) return;
 
     setIsLoading(true);
     setError(null);
+    setVideoUrl(""); // Clear previous video
 
     try {
       // Generate pose URL using the translation service
@@ -1452,6 +1456,314 @@ function SignLanguageDisplay({ text }: { text: string }) {
     }
   }, [text]);
 
+  // Generate video from pose data
+  const generateVideo = useCallback(async () => {
+    if (!poseUrl || !text) return;
+
+    setIsGeneratingVideo(true);
+    setError(null);
+
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext("2d");
+
+      if (!ctx) {
+        throw new Error("Canvas context not available");
+      }
+
+      const stream = canvas.captureStream(30);
+      const recordedChunks: Blob[] = [];
+
+      const mimeTypes = [
+        "video/webm; codecs=vp9",
+        "video/webm; codecs=vp8",
+        "video/webm",
+      ];
+
+      let mediaRecorder: MediaRecorder | null = null;
+
+      for (const mimeType of mimeTypes) {
+        if (MediaRecorder.isTypeSupported(mimeType)) {
+          mediaRecorder = new MediaRecorder(stream, {
+            mimeType,
+            videoBitsPerSecond: 2500000,
+          });
+          break;
+        }
+      }
+
+      if (!mediaRecorder) {
+        throw new Error("MediaRecorder not supported");
+      }
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunks.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const videoBlob = new Blob(recordedChunks, {
+          type: mediaRecorder!.mimeType,
+        });
+        const videoUrl = URL.createObjectURL(videoBlob);
+        setVideoUrl(videoUrl);
+        console.log("Video created:", videoBlob.size, "bytes");
+      };
+
+      mediaRecorder.start();
+
+      // Generate animation frames
+      let frameCount = 0;
+      const isVeryShortText = text.length <= 1;
+      const isShortText = text.length <= 3;
+      
+      let minFrames, textBasedFrames;
+      if (isVeryShortText) {
+        minFrames = 120;
+        textBasedFrames = 120;
+      } else if (isShortText) {
+        minFrames = 150;
+        textBasedFrames = text.length * 40;
+      } else {
+        minFrames = 180;
+        textBasedFrames = text.length * 25;
+      }
+
+      const maxFrames = Math.max(minFrames, textBasedFrames);
+      const textHash = text.split("").reduce((hash, char) => hash + char.charCodeAt(0), 0);
+
+      const drawFrame = () => {
+        // Dark background
+        ctx.fillStyle = "#1a1a1a";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Grid
+        ctx.strokeStyle = "#333333";
+        ctx.lineWidth = 1;
+        for (let i = 0; i < canvas.width; i += 40) {
+          ctx.beginPath();
+          ctx.moveTo(i, 0);
+          ctx.lineTo(i, canvas.height);
+          ctx.stroke();
+        }
+        for (let i = 0; i < canvas.height; i += 40) {
+          ctx.beginPath();
+          ctx.moveTo(0, i);
+          ctx.lineTo(canvas.width, i);
+          ctx.stroke();
+        }
+
+        const progress = frameCount / maxFrames;
+        const time = progress * Math.PI * 2;
+
+        // Animation variation
+        let textVariation = 0;
+        if (isVeryShortText) {
+          const gesturePhase = progress * 3;
+          if (gesturePhase < 1) {
+            textVariation = Math.sin(gesturePhase * Math.PI) * 0.5;
+          } else if (gesturePhase < 2) {
+            textVariation = 0.8;
+          } else {
+            textVariation = Math.sin((gesturePhase - 2) * Math.PI) * 0.5 + 0.3;
+          }
+        } else if (isShortText) {
+          textVariation = Math.sin(progress * Math.PI * 4) * 0.2;
+        }
+
+        // Draw skeleton
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+
+        ctx.strokeStyle = "#00ff88";
+        ctx.lineWidth = 3;
+
+        // Shoulders
+        const shoulderY = centerY - 40;
+        const shoulderSpread = 70 + Math.sin(time * 0.5) * 8;
+        const leftShoulderX = centerX - shoulderSpread / 2;
+        const rightShoulderX = centerX + shoulderSpread / 2;
+
+        ctx.beginPath();
+        ctx.moveTo(leftShoulderX, shoulderY);
+        ctx.lineTo(rightShoulderX, shoulderY);
+        ctx.stroke();
+
+        // Arms
+        let leftElbowX, leftElbowY, leftHandX, leftHandY;
+        let rightElbowX, rightElbowY, rightHandX, rightHandY;
+
+        if (isVeryShortText) {
+          const gestureIntensity = textVariation;
+          leftElbowX = leftShoulderX - 15;
+          leftElbowY = shoulderY + 60;
+          leftHandX = leftElbowX - 8 + gestureIntensity * 25;
+          leftHandY = leftElbowY + 15 - gestureIntensity * 12;
+
+          rightElbowX = rightShoulderX + 15;
+          rightElbowY = shoulderY + 60;
+          rightHandX = rightElbowX + 8 + gestureIntensity * 25;
+          rightHandY = rightElbowY + 15 - gestureIntensity * 12;
+        } else {
+          const armAnimation = Math.sin(time + textHash * 0.01) * 0.3;
+          leftElbowX = leftShoulderX - 25 + Math.sin(time + textVariation) * 35;
+          leftElbowY = shoulderY + 50 + armAnimation * 15;
+          leftHandX = leftElbowX - 15 + Math.cos(time + textHash * 0.01 + textVariation) * 40;
+          leftHandY = leftElbowY + 35 + Math.sin(time * 1.5 + textVariation) * 25;
+
+          rightElbowX = rightShoulderX + 25 + Math.cos(time + textVariation) * 35;
+          rightElbowY = shoulderY + 50 - armAnimation * 15;
+          rightHandX = rightElbowX + 15 + Math.sin(time + textHash * 0.01 + textVariation) * 40;
+          rightHandY = rightElbowY + 35 + Math.cos(time * 1.5 + textVariation) * 25;
+        }
+
+        // Draw arms
+        ctx.beginPath();
+        ctx.moveTo(leftShoulderX, shoulderY);
+        ctx.lineTo(leftElbowX, leftElbowY);
+        ctx.lineTo(leftHandX, leftHandY);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(rightShoulderX, shoulderY);
+        ctx.lineTo(rightElbowX, rightElbowY);
+        ctx.lineTo(rightHandX, rightHandY);
+        ctx.stroke();
+
+        // Hands
+        ctx.fillStyle = "#ffaa00";
+        ctx.beginPath();
+        ctx.arc(leftHandX, leftHandY, 10, 0, 2 * Math.PI);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(rightHandX, rightHandY, 10, 0, 2 * Math.PI);
+        ctx.fill();
+
+        // Fingers
+        for (let i = 0; i < 5; i++) {
+          let fingerAngle, fingerX, fingerY;
+
+          if (isVeryShortText) {
+            const fingerPositions = [-0.8, -0.4, 0, 0.4, 0.8];
+            fingerAngle = fingerPositions[i] + textVariation * 0.1;
+            fingerX = leftHandX + Math.cos(fingerAngle) * 12;
+            fingerY = leftHandY + Math.sin(fingerAngle) * 12;
+          } else {
+            fingerAngle = (i - 2) * 0.3 + Math.sin(time * 3 + i + textHash) * 0.2;
+            fingerX = leftHandX + Math.cos(fingerAngle) * 15;
+            fingerY = leftHandY + Math.sin(fingerAngle) * 15;
+          }
+
+          ctx.beginPath();
+          ctx.arc(fingerX, fingerY, 2.5, 0, 2 * Math.PI);
+          ctx.fill();
+
+          ctx.strokeStyle = "#ffaa00";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(leftHandX, leftHandY);
+          ctx.lineTo(fingerX, fingerY);
+          ctx.stroke();
+        }
+
+        for (let i = 0; i < 5; i++) {
+          let fingerAngle, fingerX, fingerY;
+
+          if (isVeryShortText) {
+            const fingerPositions = [-0.8, -0.4, 0, 0.4, 0.8];
+            fingerAngle = fingerPositions[i] + textVariation * 0.1;
+            fingerX = rightHandX + Math.cos(fingerAngle) * 12;
+            fingerY = rightHandY + Math.sin(fingerAngle) * 12;
+          } else {
+            fingerAngle = (i - 2) * 0.3 + Math.cos(time * 2.8 + i + textHash) * 0.2;
+            fingerX = rightHandX + Math.cos(fingerAngle) * 15;
+            fingerY = rightHandY + Math.sin(fingerAngle) * 15;
+          }
+
+          ctx.beginPath();
+          ctx.arc(fingerX, fingerY, 2.5, 0, 2 * Math.PI);
+          ctx.fill();
+
+          ctx.strokeStyle = "#ffaa00";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(rightHandX, rightHandY);
+          ctx.lineTo(fingerX, fingerY);
+          ctx.stroke();
+        }
+
+        // Head
+        ctx.strokeStyle = "#88ff00";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY - 80, 25, 0, 2 * Math.PI);
+        ctx.stroke();
+
+        // Eyes
+        ctx.fillStyle = "#88ff00";
+        ctx.beginPath();
+        ctx.arc(centerX - 8, centerY - 88, 2.5, 0, 2 * Math.PI);
+        ctx.arc(centerX + 8, centerY - 88, 2.5, 0, 2 * Math.PI);
+        ctx.fill();
+
+        // Text info
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "14px Arial";
+        ctx.textAlign = "left";
+        ctx.fillText(`"${text}"`, 10, 25);
+
+        // Progress
+        ctx.fillStyle = "#00ffff";
+        ctx.font = "11px Arial";
+        ctx.textAlign = "right";
+        ctx.fillText(`${frameCount + 1}/${maxFrames}`, canvas.width - 10, canvas.height - 10);
+
+        // Progress bar
+        const barWidth = canvas.width - 20;
+        const barHeight = 3;
+        const barY = canvas.height - 25;
+
+        ctx.fillStyle = "#333333";
+        ctx.fillRect(10, barY, barWidth, barHeight);
+
+        ctx.fillStyle = "#00ffff";
+        ctx.fillRect(10, barY, barWidth * progress, barHeight);
+
+        frameCount++;
+
+        if (frameCount < maxFrames) {
+          setTimeout(drawFrame, 1000 / 30);
+        } else {
+          setTimeout(() => {
+            mediaRecorder!.stop();
+            stream.getTracks().forEach((track) => track.stop());
+            setIsGeneratingVideo(false);
+          }, 100);
+        }
+      };
+
+      drawFrame();
+    } catch (err) {
+      console.error("Failed to generate video:", err);
+      setError("Failed to generate video");
+      setIsGeneratingVideo(false);
+    }
+  }, [poseUrl, text]);
+
+  const handleDownload = useCallback(() => {
+    if (!videoUrl) return;
+    const a = document.createElement("a");
+    a.href = videoUrl;
+    a.download = `sign-language-${text.substring(0, 20)}.webm`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }, [videoUrl, text]);
+
   return (
     <div className="space-y-4">
       <div className="text-sm text-muted-foreground">
@@ -1463,8 +1775,8 @@ function SignLanguageDisplay({ text }: { text: string }) {
         className="relative output-container rounded-xl overflow-hidden shadow-lg"
         style={{
           width: "100%",
-          height: "300px",
-          maxWidth: "300px",
+          height: "320px",
+          maxWidth: "320px",
           aspectRatio: "1/1",
         }}
       >
@@ -1489,7 +1801,26 @@ function SignLanguageDisplay({ text }: { text: string }) {
           </div>
         )}
 
-        {poseUrl && !isLoading && !error && (
+        {videoUrl && !isGeneratingVideo && (
+          <video
+            ref={videoRef}
+            src={videoUrl}
+            className="w-full h-full object-contain cursor-pointer rounded-lg"
+            controls
+            loop
+            autoPlay
+            muted
+            playsInline
+            onClick={(e) => {
+              const video = e.currentTarget;
+              if (video.paused) {
+                video.play().catch(console.error);
+              }
+            }}
+          />
+        )}
+
+        {poseUrl && !videoUrl && !isLoading && !error && !isGeneratingVideo && (
           <PoseViewer
             src={poseUrl}
             className="w-full h-full"
@@ -1497,6 +1828,17 @@ function SignLanguageDisplay({ text }: { text: string }) {
             background="transparent"
             loop={true}
           />
+        )}
+
+        {isGeneratingVideo && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/90">
+            <div className="text-center space-y-3">
+              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <div className="text-sm text-muted-foreground">
+                Generating video...
+              </div>
+            </div>
+          </div>
         )}
 
         {!poseUrl && !isLoading && !error && (
@@ -1509,6 +1851,54 @@ function SignLanguageDisplay({ text }: { text: string }) {
           </div>
         )}
       </div>
+
+      {/* Action buttons */}
+      {poseUrl && !isLoading && (
+        <div className="flex items-center gap-2">
+          {!videoUrl ? (
+            <button
+              onClick={generateVideo}
+              disabled={isGeneratingVideo}
+              className="flex items-center gap-2 px-3 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {isGeneratingVideo ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  Generate Video
+                </>
+              )}
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={handleDownload}
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download
+              </button>
+              <button
+                onClick={generateVideo}
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Regenerate
+              </button>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
